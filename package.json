@@ -171,7 +171,7 @@
     "watch": "npm run prepare:vendor && node build.mjs --watch",
     "typecheck": "npm run prepare:vendor && tsc --noEmit",
     "test": "vitest run",
-    "check": "node scripts/check.mjs",
+    "check": "npm run prepare:vendor && node scripts/check.mjs",
     "check:template": "node scripts/check-template.mjs",
     "gen:icon": "node scripts/gen-icon.mjs",
     "package": "node scripts/package.mjs",
