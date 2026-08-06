@@ -1,123 +1,193 @@
 # Editor Lang Toolkit
 
 [![Marketplace](https://img.shields.io/visual-studio-marketplace/v/HeavenSky.editor-lang-toolkit?label=marketplace)](https://marketplace.visualstudio.com/items?itemName=HeavenSky.editor-lang-toolkit)
+[![Installs](https://img.shields.io/visual-studio-marketplace/i/HeavenSky.editor-lang-toolkit)](https://marketplace.visualstudio.com/items?itemName=HeavenSky.editor-lang-toolkit)
 [![License](https://img.shields.io/badge/license-MIT-blue)](./LICENSE.txt)
 
 **English** · [简体中文](./README.zh-cn.md)
 
-Language support for YAML and TOML — validation, completion, hover, formatting and navigation.
-Both language servers ship inside the extension. There is nothing else to install.
+Language support for **YAML**, **TOML** and **ANSI-coloured text** — schema validation,
+completion, hover, formatting, navigation and terminal colours.
 
-## Why this exists
+Both language servers are bundled. There is no CLI tool to install, no toolchain to configure,
+and no telemetry.
 
-VS Code ships a full language service for JSON, but for YAML it ships only a TextMate grammar,
-and for TOML it ships nothing at all. This extension fills both gaps, and does so without asking
-you to install a CLI tool first — a language extension should work the moment it is installed.
+---
 
-|                                | JSON            | YAML              | TOML              |
-| ------------------------------ | --------------- | ----------------- | ----------------- |
-| Syntax highlighting, built in  | yes             | yes               | **no**            |
-| Language service, built in     | yes             | **no**            | **no**            |
-| Provided by this extension     | —               | **yes**           | **yes**           |
+## Why this extension exists
+
+VS Code ships a complete language service for JSON. For YAML it ships only a TextMate grammar.
+For TOML it ships nothing at all.
+
+|                                   | JSON | YAML       | TOML       |
+| --------------------------------- | ---- | ---------- | ---------- |
+| Syntax highlighting, built in     | yes  | yes        | **no**     |
+| Language service, built in        | yes  | **no**     | **no**     |
+| Provided by this extension        | —    | **yes**    | **yes**    |
+
+Most extensions that fill these gaps ask you to install a binary first — `taplo`, `buf`, a
+formatter, a linter. That model makes sense for a *tool* extension. It does not make sense for a
+*language* extension: opening a config file should just work.
+
+---
 
 ## Features
 
-Everything below comes from the two bundled language servers. Nothing runs unless you open a
-YAML or TOML file.
+### YAML
 
-### YAML — powered by [yaml-language-server](https://github.com/redhat-developer/yaml-language-server)
+Powered by a bundled copy of [yaml-language-server](https://github.com/redhat-developer/yaml-language-server).
 
-- **Validation** against JSON Schema (draft-04, draft-07, 2019-09, 2020-12), including unused
-  anchors, flow-style rules and mapping key order
-- **Schema discovery** — modelines (`# yaml-language-server: $schema=…`), an inline `$schema`
-  property, the `yaml.schemas` setting, and the [SchemaStore](https://www.schemastore.org/) catalog
-- **Completion**, **hover**, **document symbols**, **folding**, **go to definition** for anchors,
-  **rename**, **document links**, **selection ranges**, **code actions** and **code lenses**
-- **Formatting**, including format-on-type
+**Validation**
 
-### TOML — powered by [Taplo](https://github.com/tamasfe/taplo)
+- JSON Schema, drafts 04 / 07 / 2019-09 / 2020-12
+- Unused anchor detection
+- Flow-style rules (`yaml.style.flowMapping`, `yaml.style.flowSequence`)
+- Mapping key order (`yaml.keyOrdering`)
+- Kubernetes CRD schemas
 
-- **Syntax highlighting** including semantic tokens
-- **Validation** against JSON Schema, with schema association through `.taplo.toml` or settings
-- **Completion**, **hover**, **document symbols**, **folding**, **rename** and **document links**
-- **Formatting**, configurable through `.taplo.toml` or the `langToolkit.taplo` setting
+**Schema discovery** — four ways, in priority order:
 
-### ANSI — terminal escape sequences
+1. A modeline: `# yaml-language-server: $schema=<url>`
+2. An inline `$schema` property
+3. The `yaml.schemas` setting
+4. The [SchemaStore](https://www.schemastore.org/) catalog, matched automatically by filename
 
-Captured terminal output (`.ans`, `.ansi`) is rendered with its actual colours instead of raw
-escape codes.
+**Editing** — completion, hover, document symbols, folding, go-to-definition for anchors, rename,
+document links, selection ranges, code actions, code lenses, formatting and format-on-type.
 
-- **Full SGR coverage**: 16 colours, bright variants, 256-colour (`38;5;n`) and **true colour**
-  (`38;2;r;g;b`), plus bold, faint, italic, underline, double underline, strikethrough, overline,
-  inverse and conceal
-- **Colours follow your theme** — they map to VS Code's `terminal.ansi*` colours, so there is
-  nothing to configure
-- **Non-SGR sequences are recognised, not mangled** — cursor moves, line clears and the like are
-  dimmed rather than rendered as garbage, which is what progress bars and spinners are made of
-- **Preview** (`Ctrl+K V` equivalent via the command palette) opens a **real editor** with the
-  escape sequences stripped, so search, selection and copy all work normally
+### TOML
 
-To colour other files, associate them with the `ansi` language:
+Powered by a bundled WebAssembly build of [Taplo](https://github.com/tamasfe/taplo).
+
+- Syntax highlighting with semantic tokens
+- JSON Schema validation, with associations from `.taplo.toml` or from settings
+- Completion, hover, document symbols, folding, rename, document links
+- Formatting, configurable through `.taplo.toml` or the `langToolkit.taplo` setting
+
+A `.taplo.toml` in your workspace is picked up automatically — the same file the `taplo` CLI
+reads, so editor and CI stay in sync without duplicating configuration.
+
+### ANSI
+
+Captured terminal output is rendered with its real colours instead of raw escape codes.
+
+- **Full SGR coverage** — 16 colours and their bright variants, 256-colour (`38;5;n`) and
+  **true colour** (`38;2;r;g;b`); bold, faint, italic, underline, double underline, strikethrough,
+  overline, inverse and conceal
+- **Colours follow your theme** — mapped to VS Code's `terminal.ansi*` palette, so there is
+  nothing to configure and nothing to keep in sync with your colour scheme
+- **Control sequences are recognised, not mangled** — cursor moves and line clears are dimmed
+  rather than rendered as garbage. That matters more than it sounds: progress bars, spinners and
+  `docker build` output are made almost entirely of them
+- **Preview opens a real editor**, not a webview — search, selection, copy and side-by-side
+  scrolling all behave normally, because it *is* an editor
+
+Colouring applies to the `ansi` language (`.ans`, `.ansi`). To cover other files:
 
 ```jsonc
 { "files.associations": { "*.log": "ansi" } }
 ```
 
-That trades away the built-in `log` grammar's timestamp highlighting — worth it only when the file
-actually contains escape codes, since otherwise that grammar renders them as noise anyway.
+That trades away the built-in `log` grammar's timestamp highlighting. It is worth it when the file
+actually contains escape codes — that grammar renders them as noise anyway.
 
-## Settings
+---
 
-| Setting | Default | What it does |
-| --- | --- | --- |
-| `langToolkit.yaml.enabled` | `true` | Run the YAML language server. Syntax highlighting is unaffected. |
-| `langToolkit.toml.enabled` | `true` | Run the TOML language server. Syntax highlighting is unaffected. |
-| `langToolkit.taplo` | `{}` | Settings handed to Taplo, in camelCase. See the [Taplo configuration reference](https://taplo.tamasfe.dev/configuration/file.html). |
-| `langToolkit.toml.grammarUpdate.enabled` | `true` | Check weekly for a newer TOML grammar in the background. |
-| `langToolkit.toml.grammarUpdate.url` | upstream `toml.tmLanguage.json` | Where that grammar comes from. |
+## Requirements
 
-YAML schema associations use the same `yaml.schemas` and `yaml.schemaStore.*` keys that
-`yaml-language-server` reads directly, so existing configuration keeps working.
+None. Both language servers are bundled.
+
+---
 
 ## Commands
 
-| Command | What it does |
+All commands are under the **Lang Toolkit** category in the Command Palette.
+
+| Command | Description |
 | --- | --- |
-| `Lang Toolkit: Restart Language Servers` | Restarts both servers without reloading the window. |
-| `Lang Toolkit: Check for TOML Grammar Updates` | Fetches the grammar now instead of waiting for the weekly check. |
-| `Lang Toolkit: Open ANSI Preview` | Opens the current file with escape sequences stripped. |
-| `Lang Toolkit: Open ANSI Preview to the Side` | Same, in a side-by-side editor. |
+| `Restart Language Servers` | Restarts both servers without reloading the window |
+| `Check for TOML Grammar Updates` | Fetches the grammar now instead of waiting for the weekly check |
+| `Open ANSI Preview` | Opens the current file with escape sequences stripped |
+| `Open ANSI Preview to the Side` | The same, in a side-by-side editor |
 
-## Network behaviour
+---
 
-Two things reach the network, both disableable:
+## Settings
 
-1. **Schema downloads.** Both language servers fetch JSON Schemas referenced by your files, and
-   YAML additionally fetches the SchemaStore catalog. Turn a server off to stop this entirely.
-2. **TOML grammar updates.** Once a week, in the background, the extension checks whether the
-   upstream TOML TextMate grammar has changed. Downloaded content is rejected unless it parses as
-   JSON and declares the `source.toml` scope, and it is written atomically — a bad response can
-   never corrupt the bundled grammar. **A grammar update only takes effect after the window is
-   reloaded**, because `contributes.grammars` is read when the extension loads. Set
-   `langToolkit.toml.grammarUpdate.enabled` to `false` to keep the bundled grammar and make no
-   requests for it.
+| Setting | Default | Description |
+| --- | --- | --- |
+| `langToolkit.yaml.enabled` | `true` | Run the YAML language server. Syntax highlighting is unaffected. |
+| `langToolkit.toml.enabled` | `true` | Run the TOML language server. Syntax highlighting is unaffected. |
+| `langToolkit.taplo` | `{}` | Settings handed to Taplo, in camelCase. See the [Taplo reference](https://taplo.tamasfe.dev/configuration/file.html). |
+| `langToolkit.toml.grammarUpdate.enabled` | `true` | Check weekly for a newer TOML grammar in the background. |
+| `langToolkit.toml.grammarUpdate.url` | upstream grammar | Where that grammar is fetched from. |
 
-There is no telemetry.
+YAML schema associations use the standard `yaml.schemas` and `yaml.schemaStore.*` keys, which
+`yaml-language-server` reads directly — existing configuration keeps working unchanged.
+
+ANSI colouring has **no settings**. Colours come from your theme.
+
+---
+
+## Network access
+
+Two things reach the network. Both can be turned off, and neither sends anything about you.
+
+| What | When | How to disable |
+| --- | --- | --- |
+| JSON Schemas referenced by your files, plus the SchemaStore catalog | On demand, while editing | `langToolkit.yaml.enabled` / `langToolkit.toml.enabled` |
+| The upstream TOML TextMate grammar | Once a week, in the background | `langToolkit.toml.grammarUpdate.enabled` |
+
+Downloaded grammar content is rejected unless it parses as JSON and declares the `source.toml`
+scope, and it is written atomically — a bad response cannot corrupt the bundled grammar.
+
+**There is no telemetry.**
+
+---
 
 ## Size
 
-The extension bundles both servers, so it is larger than a typical language extension:
+Bundling two language servers costs space:
 
 | Component | Size |
 | --- | --- |
-| `out/extension.js` (client + YAML server + Taplo glue) | ~1.7 MB |
+| `out/extension.js` — client, YAML server, Taplo glue | ~1.7 MB |
 | `out/taplo.wasm` | ~25 MB (~6.6 MB compressed) |
 
 Taplo publishes its WebAssembly as base64 inlined into a 34 MB JavaScript file. This extension
-extracts it into a standalone `.wasm` at build time, which cuts roughly a third off the download —
+extracts it into a standalone `.wasm` at build time, cutting roughly a third off the download —
 base64's 4/3 expansion is not something gzip can compress back to the density of the raw binary.
+
+Neither server starts until you open a matching file.
+
+---
+
+## Known limitations
+
+- **TOML grammar updates need a window reload.** `contributes.grammars` is read when the extension
+  loads, so a newly downloaded grammar cannot take effect in the running window. This is a VS Code
+  mechanism, not something the extension can work around.
+- **ANSI colouring is tied to the `ansi` language id.** Use `files.associations` to extend it to
+  other files; there is no regex-based opt-in, because that would require activating the extension
+  on every window start.
+- **True-colour output creates many decoration types.** They are capped at 512 and evicted
+  least-recently-used, so a heavily coloured log will reuse rather than accumulate them.
+- **YAML formatting is Prettier.** The `yaml.format.*` settings are Prettier options passed
+  through. If you already run Prettier in CI, the two agree by construction.
+
+---
+
+## Credits
+
+This extension stands on three upstream projects, all MIT licensed:
+
+- [yaml-language-server](https://github.com/redhat-developer/yaml-language-server) — Red Hat
+- [Taplo](https://github.com/tamasfe/taplo) — Ferenc Tamás
+- [vscode-ansi](https://github.com/iliazeus/vscode-ansi) — Ilia Pozdnyakov, whose ANSI parser is
+  used here
+
+Full attributions are in [NOTICE.md](./NOTICE.md).
 
 ## License
 
-MIT — see [LICENSE.txt](./LICENSE.txt). Bundled third-party components and their licenses are
-listed in [NOTICE.md](./NOTICE.md).
+MIT — see [LICENSE.txt](./LICENSE.txt).
