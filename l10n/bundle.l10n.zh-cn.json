@@ -1,0 +1,7 @@
+{
+  "Language servers restarted.": "语言服务器已重启.",
+  "Reload Window": "重载窗口",
+  "TOML grammar updated. Reload the window to apply it.": "TOML 语法已更新, 重载窗口后生效.",
+  "The TOML grammar is already up to date.": "TOML 语法已是最新.",
+  "Failed to update the TOML grammar: {0}": "更新 TOML 语法失败: {0}"
+}

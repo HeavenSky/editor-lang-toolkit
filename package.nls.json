@@ -1,0 +1,15 @@
+{
+  "extension.description": "Self-contained YAML and TOML language support: schema validation, completion, hover, formatting and navigation. Nothing else to install.",
+  "category": "Lang Toolkit",
+  "command.restartServers": "Restart Language Servers",
+  "command.updateTomlGrammar": "Check for TOML Grammar Updates",
+  "config.yamlEnabled": "Enable the YAML language server (validation, completion, hover, formatting). Syntax highlighting is unaffected.",
+  "config.tomlEnabled": "Enable the TOML language server (validation, completion, hover, formatting). Syntax highlighting is unaffected.",
+  "config.tomlGrammarUpdateEnabled": "Check once a week for a newer TOML TextMate grammar and download it in the background. An update takes effect after the window is reloaded. Turn this off to keep the bundled grammar and make no network requests for it.",
+  "config.tomlGrammarUpdateUrl": "Source of the TOML TextMate grammar. Downloaded content is rejected unless it parses as JSON and declares the `source.toml` scope.",
+  "config.taplo": "Settings handed to the TOML language server, in camelCase. See the [Taplo configuration reference](https://taplo.tamasfe.dev/configuration/file.html). A `.taplo.toml` file in the workspace takes precedence for the rules it defines.",
+  "snippet.taplo.example": "Taplo settings example",
+  "snippet.taplo.exampleDetail": "A schema catalog plus two formatter options",
+  "command.ansiPreview": "Open ANSI Preview",
+  "command.ansiPreviewToSide": "Open ANSI Preview to the Side"
+}

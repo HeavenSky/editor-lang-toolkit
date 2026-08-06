@@ -1,0 +1,15 @@
+{
+  "extension.description": "自包含的 YAML 与 TOML 语言支持: schema 校验, 补全, 悬停提示, 格式化与导航. 无需另外安装任何工具.",
+  "category": "Lang Toolkit",
+  "command.restartServers": "重启语言服务器",
+  "command.updateTomlGrammar": "检查 TOML 语法更新",
+  "config.yamlEnabled": "启用 YAML 语言服务器 (校验, 补全, 悬停提示, 格式化). 语法高亮不受影响.",
+  "config.tomlEnabled": "启用 TOML 语言服务器 (校验, 补全, 悬停提示, 格式化). 语法高亮不受影响.",
+  "config.tomlGrammarUpdateEnabled": "每周检查一次 TOML TextMate 语法是否有新版并在后台下载. 更新需要重载窗口后生效. 关闭后将一直使用内置语法, 且不会为此发起任何网络请求.",
+  "config.tomlGrammarUpdateUrl": "TOML TextMate 语法的来源地址. 下载内容必须能解析为 JSON 且声明了 `source.toml` scope, 否则一律拒绝落盘.",
+  "config.taplo": "传给 TOML 语言服务器的设置, 键名使用 camelCase. 取值见 [Taplo 配置文档](https://taplo.tamasfe.dev/configuration/file.html). 工作区内的 `.taplo.toml` 对其自身定义的规则优先.",
+  "snippet.taplo.example": "Taplo 设置示例",
+  "snippet.taplo.exampleDetail": "一个 schema 目录加两个格式化选项",
+  "command.ansiPreview": "打开 ANSI 预览",
+  "command.ansiPreviewToSide": "在侧边打开 ANSI 预览"
+}
