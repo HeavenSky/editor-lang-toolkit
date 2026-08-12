@@ -32,6 +32,20 @@
     "json schema",
     "taplo"
   ],
+  "files": [
+    "out/extension.js",
+    "out/taplo.wasm",
+    "l10n",
+    "syntaxes/toml.tmLanguage.json",
+    "language-configuration-toml.json",
+    "media/icon.png",
+    "package.nls.json",
+    "package.nls.zh-cn.json",
+    "LICENSE.txt",
+    "NOTICE.md",
+    "README.zh-cn.md",
+    "CHANGELOG.md"
+  ],
   "main": "./out/extension.js",
   "activationEvents": [
     "onLanguage:yaml",
