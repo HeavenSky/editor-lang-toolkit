@@ -75,6 +75,53 @@ describe('LruCache', () => {
   });
 });
 
+describe('LruCache: canEvict', () => {
+  it('逐出时跳过仍在使用的条目, 改逐出下一个可逐出的', () => {
+    const evicted: string[] = [];
+    const pinned = new Set(['a']);
+    const cache = new LruCache<string, number>(2, (_v, k) => evicted.push(k), (_v, k) => !pinned.has(k));
+    cache.set('a', 1);
+    cache.set('b', 2);
+    cache.set('c', 3);
+    expect(evicted).toEqual(['b']);
+    expect(cache.has('a')).toBe(true);
+    expect(cache.has('c')).toBe(true);
+  });
+
+  it('全部在使用时暂时超过上界, 不再使用后的下一次写入回落', () => {
+    const evicted: string[] = [];
+    const pinned = new Set(['a', 'b', 'c']);
+    const cache = new LruCache<string, number>(2, (_v, k) => evicted.push(k), (_v, k) => !pinned.has(k));
+    cache.set('a', 1);
+    cache.set('b', 2);
+    cache.set('c', 3);
+    expect(cache.size).toBe(3);
+    expect(evicted).toEqual([]);
+
+    pinned.clear();
+    cache.set('d', 4);
+    expect(evicted).toEqual(['a', 'b']);
+    expect(cache.size).toBe(2);
+    expect(cache.has('d')).toBe(true);
+  });
+
+  it('刚写入的条目不会被自己逐出', () => {
+    const cache = new LruCache<string, number>(1, undefined, (_v, k) => k !== 'a');
+    cache.set('a', 1);
+    cache.set('b', 2);
+    expect(cache.has('b')).toBe(true);
+    expect(cache.size).toBe(2);
+  });
+
+  it('clear 不询问 canEvict', () => {
+    const onEvict = vi.fn();
+    const cache = new LruCache<string, number>(2, onEvict, () => false);
+    cache.set('a', 1);
+    cache.clear();
+    expect(onEvict).toHaveBeenCalledTimes(1);
+  });
+});
+
 describe('debounce', () => {
   it('连续调用只触发最后一次, 且用最后一次的参数', () => {
     vi.useFakeTimers();

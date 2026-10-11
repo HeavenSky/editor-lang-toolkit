@@ -15,10 +15,14 @@ export class LruCache<K, V> {
   /**
    * @param capacity  上界, 必须为正数
    * @param onEvict   逐出与清空时调用, 用于释放宿主资源
+   * @param canEvict  容量逐出前询问; 返回 false 的条目 (仍在使用中) 本次跳过。全部条目都在
+   *                  使用时缓存会暂时超过上界, 直到之后某次写入时它们不再被使用才回落。
+   *                  `clear` 不询问, 照常全部逐出。
    */
   public constructor(
     private readonly capacity: number,
     private readonly onEvict: (value: V, key: K) => void = () => undefined,
+    private readonly canEvict: (value: V, key: K) => boolean = () => true,
   ) {
     if (!Number.isInteger(capacity) || capacity <= 0) {
       throw new RangeError(`capacity must be a positive integer, got ${capacity}`);
@@ -52,13 +56,14 @@ export class LruCache<K, V> {
     }
     this._entries.set(key, value);
 
-    while (this._entries.size > this.capacity) {
-      const oldest = this._entries.keys().next();
-      if (oldest.done === true) break;
-      const evictedKey = oldest.value;
-      const evicted = this._entries.get(evictedKey) as V;
-      this._entries.delete(evictedKey);
-      this.onEvict(evicted, evictedKey);
+    if (this._entries.size <= this.capacity) return;
+    // 从最久未使用的一端往新的一端扫; 刚写入的条目在最末, 不参与本次逐出。
+    const candidates = [...this._entries].slice(0, -1);
+    for (const [candidateKey, candidate] of candidates) {
+      if (this._entries.size <= this.capacity) break;
+      if (!this.canEvict(candidate, candidateKey)) continue;
+      this._entries.delete(candidateKey);
+      this.onEvict(candidate, candidateKey);
     }
   }
 

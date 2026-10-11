@@ -19,7 +19,11 @@ import { getOutput } from '../shared/output';
  *    每个组合都是一个不会自己释放的宿主资源。这里用 LRU 封顶。
  */
 
-/** 装饰类型缓存的上界。超过后按最久未使用逐出并 dispose。 */
+/**
+ * 装饰类型缓存的上界。超过后按最久未使用逐出并 dispose, 但跳过本轮或任一可见编辑器仍在用的
+ * 类型 —— 否则单个文档的样式组合一多, 刚打上的颜色就会被自己逐出而静默消失。因此这是软上界:
+ * 可见内容确实需要更多组合时缓存会暂时超出, 不再可见后回落。
+ */
 const DECORATION_TYPE_LIMIT = 512;
 
 /** 连续输入时的重解析间隔。 */
@@ -105,11 +109,26 @@ class AnsiDecorator implements vscode.Disposable {
 
   private readonly _types = new LruCache<string, vscode.TextEditorDecorationType>(
     DECORATION_TYPE_LIMIT,
-    (type) => type.dispose(),
+    (type) => {
+      type.dispose();
+      this._disposed.add(type);
+    },
+    (type) => !this._isInUse(type),
   );
 
   /** 记住每个编辑器实际用过的装饰类型, 清除时才知道要清哪些。 */
   private readonly _applied = new WeakMap<vscode.TextEditor, Set<vscode.TextEditorDecorationType>>();
+
+  /** 正在进行的这一轮 apply 已用到的类型; 它们还没写进 `_applied`, 需要单独防止被逐出。 */
+  private _inProgress: Set<vscode.TextEditorDecorationType> | undefined;
+
+  /** 已 dispose 的类型; 不可见编辑器的 `_applied` 里可能还留着, 清理时跳过。 */
+  private readonly _disposed = new WeakSet<vscode.TextEditorDecorationType>();
+
+  private _isInUse(type: vscode.TextEditorDecorationType): boolean {
+    if (this._inProgress?.has(type)) return true;
+    return vscode.window.visibleTextEditors.some((editor) => this._applied.get(editor)?.has(type) === true);
+  }
 
   public dispose(): void {
     this._escapeType.dispose();
@@ -131,7 +150,7 @@ class AnsiDecorator implements vscode.Disposable {
    * 累计的转义长度 —— 同一个解析器同时服务两种视图, 差别只在这一个偏移量上。
    */
   public apply(editor: vscode.TextEditor, source: vscode.TextDocument, stripEscapes: boolean): void {
-    const parser = new ansi.Parser();
+    const parser = ansi.createTerminalParser();
     const ranges = new Map<string, vscode.Range[]>();
     const styles = new Map<string, ansi.Style>();
     const escapes: vscode.Range[] = [];
@@ -166,17 +185,22 @@ class AnsiDecorator implements vscode.Disposable {
     const previous = this._applied.get(editor);
     const current = new Set<vscode.TextEditorDecorationType>();
 
-    for (const [key, value] of ranges) {
-      const type = this._typeFor(key, styles.get(key) as ansi.Style);
-      current.add(type);
-      editor.setDecorations(type, value);
+    this._inProgress = current;
+    try {
+      for (const [key, value] of ranges) {
+        const type = this._typeFor(key, styles.get(key) as ansi.Style);
+        current.add(type);
+        editor.setDecorations(type, value);
+      }
+    } finally {
+      this._inProgress = undefined;
     }
     editor.setDecorations(this._escapeType, escapes);
     current.add(this._escapeType);
 
     if (previous) {
       for (const stale of previous) {
-        if (!current.has(stale)) editor.setDecorations(stale, []);
+        if (!current.has(stale) && !this._disposed.has(stale)) editor.setDecorations(stale, []);
       }
     }
     this._applied.set(editor, current);
@@ -185,7 +209,9 @@ class AnsiDecorator implements vscode.Disposable {
   public clear(editor: vscode.TextEditor): void {
     const previous = this._applied.get(editor);
     if (!previous) return;
-    for (const type of previous) editor.setDecorations(type, []);
+    for (const type of previous) {
+      if (!this._disposed.has(type)) editor.setDecorations(type, []);
+    }
     this._applied.delete(editor);
   }
 }
@@ -225,7 +251,7 @@ class AnsiPreviewProvider implements vscode.TextDocumentContentProvider {
     this._watched.add(source.toString());
 
     const document = await vscode.workspace.openTextDocument(source);
-    const parser = new ansi.Parser();
+    const parser = ansi.createTerminalParser();
     const lines: string[] = [];
 
     for (let lineNumber = 0; lineNumber < document.lineCount; lineNumber += 1) {

@@ -148,7 +148,7 @@ Neither server starts until you open a matching file.
 
 - **TOML grammar updates need a window reload.** `contributes.grammars` is read when the extension loads, so a newly downloaded grammar cannot take effect in the running window. This is a VS Code mechanism, not something the extension can work around.
 - **ANSI colouring is tied to the `ansi` language id.** Use `files.associations` to extend it to other files; there is no regex-based opt-in, because that would require activating the extension on every window start.
-- **True-colour output creates many decoration types.** They are capped at 512 and evicted least-recently-used, so a heavily coloured log will reuse rather than accumulate them.
+- **True-colour output creates many decoration types.** They are capped at 512 and evicted least-recently-used, so a heavily coloured log will reuse rather than accumulate them. Types still shown in a visible editor are never evicted, so the cap is soft: if the visible ANSI documents need more than 512 style combinations at once, the cache temporarily grows to that size and shrinks back once they are no longer visible.
 - **YAML formatting is Prettier.** The `yaml.format.*` settings are Prettier options passed through. If you already run Prettier in CI, the two agree by construction.
 
 ---

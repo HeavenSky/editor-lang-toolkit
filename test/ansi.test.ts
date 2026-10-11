@@ -7,6 +7,7 @@ import {
   AttributeFlags,
   ColorFlags,
   DefaultStyle,
+  createTerminalParser,
   NamedColor,
   Parser,
   type Span,
@@ -59,6 +60,50 @@ describe('Parser: 基本 SGR', () => {
     expect(spans[0]?.attributeFlags & AttributeFlags.Underline).toBeTruthy();
     expect(spans[1]?.attributeFlags & AttributeFlags.Bold).toBeTruthy();
     expect(spans[1]?.attributeFlags & AttributeFlags.Underline).toBeFalsy();
+  });
+});
+
+describe('Parser: 双下划线与冒号子参数', () => {
+  it('编辑器用的解析器把 SGR 21 当作双下划线, 不关闭粗体', () => {
+    const spans = textSpans(createTerminalParser().appendLine(`${ESC}[1;4m${ESC}[21mtext`));
+    expect(spans[0]?.attributeFlags & AttributeFlags.DoubleUnderline).toBeTruthy();
+    expect(spans[0]?.attributeFlags & AttributeFlags.Underline).toBeFalsy();
+    expect(spans[0]?.attributeFlags & AttributeFlags.Bold).toBeTruthy();
+  });
+
+  it('SGR 24 同时关闭单线与双线下划线', () => {
+    const spans = textSpans(createTerminalParser().appendLine(`${ESC}[21mdouble${ESC}[24mnone`));
+    expect(spans[1]?.attributeFlags & (AttributeFlags.Underline | AttributeFlags.DoubleUnderline)).toBeFalsy();
+  });
+
+  it('默认选项仍保留上游语义: SGR 21 关闭粗体', () => {
+    const spans = textSpans(new Parser().appendLine(`${ESC}[1m${ESC}[21mtext`));
+    expect(spans[0]?.attributeFlags & AttributeFlags.Bold).toBeFalsy();
+    expect(spans[0]?.attributeFlags & AttributeFlags.DoubleUnderline).toBeFalsy();
+  });
+
+  it('4:2 是双下划线, 4:0 关闭, 4:3 按单线近似', () => {
+    const spans = textSpans(
+      createTerminalParser().appendLine(`${ESC}[4:2ma${ESC}[4:0mb${ESC}[4:3mc${ESC}[4:mdd`),
+    );
+    expect(spans.map((span) => span.length)).toEqual([1, 1, 1, 2]);
+    expect(spans[0]?.attributeFlags & AttributeFlags.DoubleUnderline).toBeTruthy();
+    expect(spans[1]?.attributeFlags & (AttributeFlags.Underline | AttributeFlags.DoubleUnderline)).toBeFalsy();
+    expect(spans[2]?.attributeFlags & AttributeFlags.Underline).toBeTruthy();
+    expect(spans[3]?.attributeFlags & AttributeFlags.Underline).toBeTruthy();
+  });
+
+  it('冒号分组与分号参数混用时各自生效', () => {
+    const spans = textSpans(createTerminalParser().appendLine(`${ESC}[1;4:2;31mtext`));
+    expect(spans[0]?.attributeFlags & AttributeFlags.Bold).toBeTruthy();
+    expect(spans[0]?.attributeFlags & AttributeFlags.DoubleUnderline).toBeTruthy();
+    expect(spans[0]?.foregroundColor).toBe(NamedColor.Red);
+  });
+
+  it('不认识的冒号分组被当作转义序列吞掉, 不改变样式也不进正文', () => {
+    const spans = textSpans(createTerminalParser().appendLine(`${ESC}[38:2::1:2:3mtext`));
+    expect(spans).toHaveLength(1);
+    expect(spans[0]).toMatchObject({ offset: 14, length: 4, foregroundColor: DefaultStyle.foregroundColor });
   });
 });
 

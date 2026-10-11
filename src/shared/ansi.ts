@@ -2,7 +2,8 @@
  * ANSI/VT100 转义序列解析器 —— 纯逻辑, 不 import vscode, 由 vitest 直接覆盖。
  *
  * 移植自 iliazeus/vscode-ansi 的 `src/ansi.ts` (MIT, Copyright (c) 2020 Ilia Pozdnyakov),
- * 除本注释外未作改动。归属见 `NOTICE.md`。
+ * 归属见 `NOTICE.md`。相对上游的改动: 识别 SGR 的冒号子参数 (目前只解释 `4:n` 下划线样式,
+ * 其余冒号分组整体忽略但仍按转义序列吞掉), 并提供与终端一致的 `createTerminalParser`。
  *
  * 两个设计要点值得留意, 它们决定了装饰层能怎么写:
  *
@@ -135,7 +136,7 @@ export class Parser {
         continue;
       }
 
-      const match = text.slice(index + 2).match(/^([0-9;]*)([a-zA-Z])/);
+      const match = text.slice(index + 2).match(/^([0-9;:]*)([a-zA-Z])/);
       if (!match) {
         index += 1;
         continue;
@@ -152,13 +153,22 @@ export class Parser {
       });
 
       if (commandLetter === "m") {
-        const args = argString
-          .split(";")
-          .filter((arg) => arg !== "")
-          .map((arg) => parseInt(arg, 10));
-        if (args.length === 0) args.push(0);
+        const groups = argString.split(";").filter((arg) => arg !== "");
+        if (groups.length === 0) groups.push("0");
 
-        this._applyCodes(args, style);
+        // 冒号分组 (ITU T.416 子参数, 如 `4:2`) 自成一个单元; 其余分号参数按原样连续交给
+        // `_applyCodes`, 保持 `38;5;n` 这类跨参数序列的语义不变。
+        let pending: number[] = [];
+        for (const group of groups) {
+          if (!group.includes(":")) {
+            pending.push(parseInt(group, 10));
+            continue;
+          }
+          this._applyCodes(pending, style);
+          pending = [];
+          this._applySubParams(group.split(":"), style);
+        }
+        this._applyCodes(pending, style);
       }
 
       textOffset = index + 2 + argString.length + 1;
@@ -168,6 +178,25 @@ export class Parser {
     spans.push({ ...style, offset: textOffset, length: index - textOffset });
 
     return spans;
+  }
+
+  /**
+   * 冒号子参数。只解释 `4:n` (0 关闭, 1 单线, 2 双线, 3-5 曲线/点线/虚线按单线近似);
+   * 其它冒号分组 (例如 `38:2::r:g:b`) 忽略。
+   */
+  private _applySubParams(parts: string[], style: Style): void {
+    if (parts[0] !== "4") return;
+    const kind = parts[1] === undefined || parts[1] === "" ? 1 : parseInt(parts[1], 10);
+
+    if (kind === 0) {
+      style.attributeFlags &= ~(AttributeFlags.Underline | AttributeFlags.DoubleUnderline);
+    } else if (kind === 2 && this.options.doubleUnderline) {
+      style.attributeFlags |= AttributeFlags.DoubleUnderline;
+      style.attributeFlags &= ~AttributeFlags.Underline;
+    } else if (kind >= 1 && kind <= 5) {
+      style.attributeFlags |= AttributeFlags.Underline;
+      style.attributeFlags &= ~AttributeFlags.DoubleUnderline;
+    }
   }
 
   private _applyCodes(args: number[], style: Style): void {
@@ -467,4 +496,12 @@ export class Parser {
 
     return (r << 16) | (g << 8) | b;
   }
+}
+
+/**
+ * 与 xterm / VS Code 集成终端一致的解析器: SGR 21 是双下划线, 而不是"关闭粗体"。
+ * 编辑器着色与预览都用它, 免得同一份日志在终端和编辑器里看起来不一样。
+ */
+export function createTerminalParser(): Parser {
+  return new Parser({ doubleUnderline: true });
 }

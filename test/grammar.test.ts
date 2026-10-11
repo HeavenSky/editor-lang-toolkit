@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  etagForRequest,
   GRAMMAR_UPDATE_INTERVAL_MS,
+  grammarDigest,
   isValidTomlGrammar,
   shouldCheckForUpdate,
 } from '../src/shared/grammar';
@@ -81,5 +83,31 @@ describe('shouldCheckForUpdate', () => {
   it('周期可以由调用方指定', () => {
     expect(shouldCheckForUpdate(now - 1000, now, 500)).toBe(true);
     expect(shouldCheckForUpdate(now - 1000, now, 5000)).toBe(false);
+  });
+});
+
+describe('etagForRequest', () => {
+  const written = Buffer.from(valid, 'utf8');
+  const record = { etag: 'W/"abc"', sha256: grammarDigest(written) };
+
+  it('磁盘内容与记录时一致才带 ETag', () => {
+    expect(etagForRequest(record, grammarDigest(written))).toBe('W/"abc"');
+  });
+
+  it('扩展升级后文件被换回自带版本, 摘要不符时不带 ETag', () => {
+    const bundled = Buffer.from(`${valid}\n`, 'utf8');
+    expect(etagForRequest(record, grammarDigest(bundled))).toBeUndefined();
+  });
+
+  it('读不到磁盘文件时不带 ETag', () => {
+    expect(etagForRequest(record, undefined)).toBeUndefined();
+  });
+
+  it('旧格式 (裸字符串) 或残缺记录一律不带 ETag', () => {
+    const digest = grammarDigest(written);
+    expect(etagForRequest('W/"abc"', digest)).toBeUndefined();
+    expect(etagForRequest(undefined, digest)).toBeUndefined();
+    expect(etagForRequest({ etag: '', sha256: digest }, digest)).toBeUndefined();
+    expect(etagForRequest({ etag: 'x' }, digest)).toBeUndefined();
   });
 });

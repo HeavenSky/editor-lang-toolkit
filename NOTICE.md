@@ -52,8 +52,9 @@ This file may be replaced at runtime by a newer copy fetched from the same upstr
 - Copyright (c) 2020 Ilia Pozdnyakov
 - Source: https://github.com/iliazeus/vscode-ansi
 
-`src/shared/ansi.ts` is a port of that project's `src/ansi.ts`, unchanged apart from an added
-header comment. The decoration and preview layers built on top of it (`src/features/ansi.ts`) are
+`src/shared/ansi.ts` is a port of that project's `src/ansi.ts`. Apart from an added header comment,
+it adds support for SGR colon sub-parameters (only the `4:n` underline style is interpreted) and a
+`createTerminalParser` helper that enables double underline for SGR 21. The decoration and preview layers built on top of it (`src/features/ansi.ts`) are
 original work of this project, though the virtual-document preview approach is taken from the same
 source. The ANSI test fixtures under `test/fixtures/` are copied from its `test/` directory; they
 are not part of the published package.

@@ -19,7 +19,7 @@
  *
  * 用法: node scripts/prepare-vendor.mjs
  */
-import { copyFileSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
+import { copyFileSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -121,6 +121,8 @@ try {
 if (!bundles.includes('bundle.l10n.json')) {
   fail('yaml-language-server 的 l10n 里没有 bundle.l10n.json; 需要重新适配');
 }
+// 先清空再复制: 上游删掉的 bundle 若留在目标目录, 会被静默打进包里。
+rmSync(YAML_L10N_TARGET, { recursive: true, force: true });
 mkdirSync(YAML_L10N_TARGET, { recursive: true });
 for (const name of bundles) {
   copyFileSync(join(YAML_L10N_SOURCE, name), join(YAML_L10N_TARGET, name));

@@ -1,14 +1,19 @@
 import * as vscode from 'vscode';
 
 import {
+  type EtagRecord,
+  etagForRequest,
   GRAMMAR_UPDATE_INTERVAL_MS,
+  grammarDigest,
   isValidTomlGrammar,
   shouldCheckForUpdate,
 } from '../shared/grammar';
 import { getOutput } from '../shared/output';
 
 const LAST_CHECKED_KEY = 'tomlGrammar.lastCheckedAt';
-const ETAG_KEY = 'tomlGrammar.etag';
+/** 旧版本只存 ETag 字符串, 不知道对应哪份磁盘内容; 读到即清掉, 不再使用。 */
+const LEGACY_ETAG_KEY = 'tomlGrammar.etag';
+const ETAG_RECORD_KEY = 'tomlGrammar.etagRecord';
 
 const GRAMMAR_RELATIVE_PATH = ['syntaxes', 'toml.tmLanguage.json'];
 
@@ -64,7 +69,14 @@ export async function updateTomlGrammar(
 
   try {
     const headers: Record<string, string> = { accept: 'application/json, text/plain' };
-    const etag = context.globalState.get<string>(ETAG_KEY);
+    if (context.globalState.get(LEGACY_ETAG_KEY) !== undefined) {
+      await context.globalState.update(LEGACY_ETAG_KEY, undefined);
+    }
+    const onDisk = await readIfExists(target);
+    const etag = etagForRequest(
+      context.globalState.get<unknown>(ETAG_RECORD_KEY),
+      onDisk ? grammarDigest(onDisk) : undefined,
+    );
     // 手动触发时不带 If-None-Match: 用户点了"检查更新"就应该真的去取一次完整内容,
     // 否则本地文件被改坏后 304 会让人无从修复。
     if (etag && !options.force) headers['if-none-match'] = etag;
@@ -89,16 +101,15 @@ export async function updateTomlGrammar(
     }
 
     const next = Buffer.from(text, 'utf8');
-    const current = await readIfExists(target);
-    if (current && current.equals(next)) {
-      await rememberEtag(context, response);
+    if (onDisk && onDisk.equals(next)) {
+      await rememberEtag(context, response, next);
       output.debug('TOML grammar is byte-identical to the bundled one.');
       return { kind: 'unchanged' };
     }
 
     await vscode.workspace.fs.writeFile(temporary, next);
     await vscode.workspace.fs.rename(temporary, target, { overwrite: true });
-    await rememberEtag(context, response);
+    await rememberEtag(context, response, next);
 
     output.info('TOML grammar updated; reload the window to apply it.');
     return { kind: 'updated' };
@@ -110,9 +121,14 @@ export async function updateTomlGrammar(
   }
 }
 
-async function rememberEtag(context: vscode.ExtensionContext, response: Response): Promise<void> {
+async function rememberEtag(
+  context: vscode.ExtensionContext,
+  response: Response,
+  written: Uint8Array,
+): Promise<void> {
   const etag = response.headers.get('etag');
-  if (etag) await context.globalState.update(ETAG_KEY, etag);
+  const record: EtagRecord | undefined = etag ? { etag, sha256: grammarDigest(written) } : undefined;
+  await context.globalState.update(ETAG_RECORD_KEY, record);
 }
 
 async function readIfExists(uri: vscode.Uri): Promise<Buffer | undefined> {
