@@ -1,5 +1,5 @@
 {
-  "extension.description": "自包含的 YAML 与 TOML 语言支持: schema 校验, 补全, 悬停提示, 格式化与导航. 无需另外安装任何工具.",
+  "extension.description": "自包含的 YAML 与 TOML 语言支持: schema 校验, 补全, 悬停提示, 格式化与导航; 另将 ANSI 着色文本按真实终端颜色渲染. 无需另外安装任何工具.",
   "category": "Lang Toolkit",
   "command.restartServers": "重启语言服务器",
   "command.updateTomlGrammar": "检查 TOML 语法更新",

@@ -1,5 +1,5 @@
 {
-  "extension.description": "Self-contained YAML and TOML language support: schema validation, completion, hover, formatting and navigation. Nothing else to install.",
+  "extension.description": "Self-contained YAML and TOML language support: schema validation, completion, hover, formatting and navigation; plus ANSI-coloured text rendered with real terminal colours. Nothing else to install.",
   "category": "Lang Toolkit",
   "command.restartServers": "Restart Language Servers",
   "command.updateTomlGrammar": "Check for TOML Grammar Updates",

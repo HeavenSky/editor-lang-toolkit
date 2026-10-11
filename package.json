@@ -188,6 +188,7 @@
     "check": "npm run prepare:vendor && node scripts/check.mjs",
     "check:template": "node scripts/check-template.mjs",
     "gen:icon": "node scripts/gen-icon.mjs",
+    "prepackage": "npm run prepare:vendor",
     "package": "node scripts/package.mjs",
     "vscode:prepublish": "npm run build"
   },
