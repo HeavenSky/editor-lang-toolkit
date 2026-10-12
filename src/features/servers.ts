@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { LanguageClient, TransportKind } from 'vscode-languageclient/node';
 import type { LanguageClientOptions, ServerOptions } from 'vscode-languageclient/node';
 
+import { rewriteTaploSource } from '../shared/diagnosticSource';
 import { getOutput } from '../shared/output';
 
 import { TOML_SERVER_FLAG, YAML_SERVER_FLAG } from './serverFlags';
@@ -73,6 +74,10 @@ function createTomlClient(context: vscode.ExtensionContext): LanguageClient {
       cachePath: context.globalStorageUri.fsPath,
     },
     outputChannel: getOutput(),
+    middleware: {
+      // 来源写死在 wasm 里, 只能在客户端改写, 见 `rewriteTaploSource`。
+      handleDiagnostics: (uri, diagnostics, next) => next(uri, rewriteTaploSource(diagnostics)),
+    },
   };
   return new LanguageClient(
     'langToolkit.toml',
