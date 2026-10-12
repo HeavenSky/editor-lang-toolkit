@@ -42,6 +42,8 @@ VS Code 内置了完整的 JSON 语言服务. 对 YAML 只提供了 TextMate 语
 - 映射键顺序 (`yaml.keyOrdering`)
 - Kubernetes CRD schema
 
+![YAML 按 JSON Schema 校验](./media/screenshots/yaml-validation.png)
+
 **Schema 发现** —— 四种途径, 按优先级:
 
 1. modeline: `# yaml-language-server: $schema=<url>`
@@ -51,6 +53,8 @@ VS Code 内置了完整的 JSON 语言服务. 对 YAML 只提供了 TextMate 语
 
 **编辑** —— 补全, 悬停提示, 文档符号, 折叠, 锚点跳转定义, 重命名, 文档链接, 智能选区, 快速修复, CodeLens, 格式化与输入时格式化.
 
+![YAML 按 JSON Schema 补全](./media/screenshots/yaml-completion.png)
+
 ### TOML
 
 基于内置的 [Taplo](https://github.com/tamasfe/taplo) WebAssembly 构建.
@@ -59,6 +63,8 @@ VS Code 内置了完整的 JSON 语言服务. 对 YAML 只提供了 TextMate 语
 - JSON Schema 校验, 关联可来自 `.taplo.toml` 或设置
 - 补全, 悬停提示, 文档符号, 折叠, 重命名, 文档链接
 - 格式化, 可通过 `.taplo.toml` 或 `langToolkit.taplo` 设置调整
+
+![TOML 语法高亮与 Schema 校验](./media/screenshots/toml-validation.png)
 
 工作区里的 `.taplo.toml` 会被自动读取 —— 与 `taplo` CLI 是同一份文件, 因此编辑器与 CI 天然一致, 不需要维护两份配置.
 
@@ -70,6 +76,8 @@ VS Code 内置了完整的 JSON 语言服务. 对 YAML 只提供了 TextMate 语
 - **颜色跟随主题** —— 映射到 VS Code 的 `terminal.ansi*` 调色板, 无需任何配置, 也不必跟着配色方案手动同步
 - **控制序列被正确识别而不是渲染成乱码** —— 光标移动与清行会被淡化处理. 这比听起来重要: 进度条, spinner 与 `docker build` 的输出几乎全由它们构成
 - **预览打开的是真正的编辑器**, 不是 webview —— 搜索, 选择, 复制与并排滚动都照常可用, 因为它本来就是编辑器
+
+![ANSI 着色与预览](./media/screenshots/ansi-preview.png)
 
 着色作用于 `ansi` 语言 (`.ans`, `.ansi`). 要覆盖其他文件:
 
@@ -164,6 +172,20 @@ Taplo 上游把 WebAssembly 以 base64 内联在一个 34 MB 的 JavaScript 文�
 - [vscode-ansi](https://github.com/iliazeus/vscode-ansi) — Ilia Pozdnyakov, 本扩展使用了其 ANSI 解析器
 
 完整的归属声明见 [NOTICE.md](./NOTICE.md).
+
+## 开发
+
+```bash
+npm ci
+npm run check       # 图标, 清单, l10n 与骨架漂移门禁
+npm run typecheck
+npm test
+npm run package     # 生成 artifacts/<名称>-<版本>.vsix 并断言包内容
+```
+
+使用 npm 12 时, `npm ci` 只接受从 `registry.npmjs.org` 解析的 lockfile, 且依赖的安装脚本(`esbuild`, `@vscode/vsce-sign`, `fsevents`)默认不执行. 检查, 测试与打包都不需要它们; 只有本地签名或发布报错时, 才用 `npm install-scripts approve <包>` 放行. CI 使用 `.nvmrc` 指定的 Node 版本自带的 npm, 不受影响.
+
+`npm run shots` 手动重新生成功能截图(macOS, 运行时会弹出一个 VS Code 窗口), 输出到 `media/screenshots/`. 截图不参与打包与发布.
 
 ## 许可
 

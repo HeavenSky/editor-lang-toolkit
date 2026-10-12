@@ -49,7 +49,7 @@ const bracket = (x, yTop, yBottom, arm) => ({
   strokeWidth: 12,
 });
 
-export const spec = {
+export default {
   size: SIZE,
   label: 'Editor Lang Toolkit',
   shapes: [

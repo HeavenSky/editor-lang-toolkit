@@ -33,7 +33,7 @@ const FORBIDDEN_APIS = [
 
 const FORBIDDEN_SETTING_HINTS = ['serverPath', 'binaryPath', 'executablePath'];
 
-export function checks(root) {
+export default function checks(root) {
   return {
     '不依赖外部二进制 (源码)': () => {
       const problems = [];

@@ -40,6 +40,8 @@ Powered by a bundled copy of [yaml-language-server](https://github.com/redhat-de
 - Mapping key order (`yaml.keyOrdering`)
 - Kubernetes CRD schemas
 
+![YAML validation against a JSON Schema](./media/screenshots/yaml-validation.png)
+
 **Schema discovery** — four ways, in priority order:
 
 1. A modeline: `# yaml-language-server: $schema=<url>`
@@ -49,6 +51,8 @@ Powered by a bundled copy of [yaml-language-server](https://github.com/redhat-de
 
 **Editing** — completion, hover, document symbols, folding, go-to-definition for anchors, rename, document links, selection ranges, code actions, code lenses, formatting and format-on-type.
 
+![YAML completion from a JSON Schema](./media/screenshots/yaml-completion.png)
+
 ### TOML
 
 Powered by a bundled WebAssembly build of [Taplo](https://github.com/tamasfe/taplo).
@@ -57,6 +61,8 @@ Powered by a bundled WebAssembly build of [Taplo](https://github.com/tamasfe/tap
 - JSON Schema validation, with associations from `.taplo.toml` or from settings
 - Completion, hover, document symbols, folding, rename, document links
 - Formatting, configurable through `.taplo.toml` or the `langToolkit.taplo` setting
+
+![TOML highlighting and schema validation](./media/screenshots/toml-validation.png)
 
 A `.taplo.toml` in your workspace is picked up automatically — the same file the `taplo` CLI reads, so editor and CI stay in sync without duplicating configuration.
 
@@ -68,6 +74,8 @@ Captured terminal output is rendered with its real colours instead of raw escape
 - **Colours follow your theme** — mapped to VS Code's `terminal.ansi*` palette, so there is nothing to configure and nothing to keep in sync with your colour scheme
 - **Control sequences are recognised, not mangled** — cursor moves and line clears are dimmed rather than rendered as garbage. That matters more than it sounds: progress bars, spinners and `docker build` output are made almost entirely of them
 - **Preview opens a real editor**, not a webview — search, selection, copy and side-by-side scrolling all behave normally, because it *is* an editor
+
+![ANSI colouring and preview](./media/screenshots/ansi-preview.png)
 
 Colouring applies to the `ansi` language (`.ans`, `.ansi`). To cover other files:
 
@@ -162,6 +170,20 @@ This extension stands on three upstream projects, all MIT licensed:
 - [vscode-ansi](https://github.com/iliazeus/vscode-ansi) — Ilia Pozdnyakov, whose ANSI parser is used here
 
 Full attributions are in [NOTICE.md](./NOTICE.md).
+
+## Development
+
+```bash
+npm ci
+npm run check       # icon, manifest, l10n and template drift gates
+npm run typecheck
+npm test
+npm run package     # build artifacts/<name>-<version>.vsix and assert its contents
+```
+
+With npm 12, `npm ci` only accepts a lockfile resolved from `registry.npmjs.org`, and dependency install scripts (`esbuild`, `@vscode/vsce-sign`, `fsevents`) are skipped by default. None of them is needed to check, test or package; approve one with `npm install-scripts approve <package>` only if signing or publishing locally fails. CI uses the npm bundled with the Node version in `.nvmrc` and is not affected.
+
+`npm run shots` regenerates the feature screenshots by hand (macOS; a VS Code window pops up while it runs) and writes them to `media/screenshots/`. Screenshots are not part of packaging or publishing.
 
 ## License
 

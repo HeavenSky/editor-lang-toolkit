@@ -9,7 +9,7 @@ import {
   parseManifest,
   renderManifest,
 } from '../scripts/lib/template-shared.mjs';
-import { deriveAllowlist } from '../scripts/lib/vsix-allowlist.mjs';
+import deriveAllowlist from '../scripts/lib/vsix-allowlist.mjs';
 
 /**
  * 门禁自身的测试。
