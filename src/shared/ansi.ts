@@ -76,6 +76,8 @@ export enum AttributeFlags {
 export interface Style {
   backgroundColor: Color;
   foregroundColor: Color;
+  /** SGR 58 设定的下划线颜色; `DefaultForeground` 表示跟随文字颜色。 */
+  underlineColor: Color;
   attributeFlags: AttributeFlags;
   fontIndex: number;
 }
@@ -83,6 +85,7 @@ export interface Style {
 export const DefaultStyle: Style = {
   backgroundColor: NamedColor.DefaultBackground,
   foregroundColor: NamedColor.DefaultForeground,
+  underlineColor: NamedColor.DefaultForeground,
   attributeFlags: 0,
   fontIndex: 0,
 };
@@ -181,10 +184,18 @@ export class Parser {
   }
 
   /**
-   * 冒号子参数。只解释 `4:n` (0 关闭, 1 单线, 2 双线, 3-5 曲线/点线/虚线按单线近似);
-   * 其它冒号分组 (例如 `38:2::r:g:b`) 忽略。
+   * 冒号子参数。解释 `4:n` (0 关闭, 1 单线, 2 双线, 3-5 曲线/点线/虚线按单线近似) 与下划线颜色
+   * `58:5:n`, `58:2::r:g:b` (颜色空间 id 可省略, 即 `58:2:r:g:b`); 其它冒号分组 (例如 `38:2::r:g:b`) 忽略。
    */
   private _applySubParams(parts: string[], style: Style): void {
+    if (parts[0] === "58") {
+      // ITU T.416 的真彩色带一个颜色空间 id: `2:<id>:r:g:b`; 常见实现也接受省略 id 的 `2:r:g:b`。
+      const rgb = parts[1] === "2" && parts.length >= 6 ? parts.slice(3, 6) : parts.slice(2, 5);
+      const nums = [parts[1] ?? "", ...(parts[1] === "5" ? [parts[2] ?? ""] : rgb)].map((v) => parseInt(v, 10));
+      const { color } = this._readExtendedColor([58, ...nums], 0);
+      if (color !== undefined) style.underlineColor = color;
+      return;
+    }
     if (parts[0] !== "4") return;
     const kind = parts[1] === undefined || parts[1] === "" ? 1 : parseInt(parts[1], 10);
 
@@ -326,28 +337,9 @@ export class Parser {
           break;
 
         case 38: {
-          const colorType = args[argIndex + 1];
-
-          if (colorType === 5) {
-            const color = args[argIndex + 2];
-            argIndex += 2;
-
-            if (0 <= color && color <= 255) {
-              style.foregroundColor = this._convert8BitColor(color);
-            }
-          }
-
-          if (colorType === 2) {
-            const r = args[argIndex + 2];
-            const g = args[argIndex + 3];
-            const b = args[argIndex + 4];
-            argIndex += 4;
-
-            if (0 <= r && r <= 255 && 0 <= g && g <= 255 && 0 <= b && b <= 255) {
-              style.foregroundColor = (r << 16) | (g << 8) | b;
-            }
-          }
-
+          const { color, consumed } = this._readExtendedColor(args, argIndex);
+          argIndex += consumed;
+          if (color !== undefined) style.foregroundColor = color;
           break;
         }
 
@@ -367,28 +359,9 @@ export class Parser {
           break;
 
         case 48: {
-          const colorType = args[argIndex + 1];
-
-          if (colorType === 5) {
-            const color = args[argIndex + 2];
-            argIndex += 2;
-
-            if (0 <= color && color <= 255) {
-              style.backgroundColor = this._convert8BitColor(color);
-            }
-          }
-
-          if (colorType === 2) {
-            const r = args[argIndex + 2];
-            const g = args[argIndex + 3];
-            const b = args[argIndex + 4];
-            argIndex += 4;
-
-            if (0 <= r && r <= 255 && 0 <= g && g <= 255 && 0 <= b && b <= 255) {
-              style.backgroundColor = (r << 16) | (g << 8) | b;
-            }
-          }
-
+          const { color, consumed } = this._readExtendedColor(args, argIndex);
+          argIndex += consumed;
+          if (color !== undefined) style.backgroundColor = color;
           break;
         }
 
@@ -423,12 +396,16 @@ export class Parser {
           style.attributeFlags &= ~AttributeFlags.Overlined;
           break;
 
-        case 58:
-          // TODO: underline colors
+        case 58: {
+          // 必须和 38/48 一样吞掉颜色参数, 否则 `58;2;r;g;b` 里的 2 与 0 会被当成淡色与重置。
+          const { color, consumed } = this._readExtendedColor(args, argIndex);
+          argIndex += consumed;
+          if (color !== undefined) style.underlineColor = color;
           break;
+        }
 
         case 59:
-          // TODO: underline colors
+          style.underlineColor = DefaultStyle.underlineColor;
           break;
 
         case 73:
@@ -464,6 +441,29 @@ export class Parser {
           break;
       }
     }
+  }
+
+  /**
+   * 读 `38` / `48` / `58` 之后的扩展色参数 (`5;n` 或 `2;r;g;b`), 返回颜色与要跳过的参数个数。
+   * 参数越界时不给颜色, 但仍按类型跳过, 与终端的处理一致。
+   */
+  private _readExtendedColor(args: number[], argIndex: number): { color: Color | undefined; consumed: number } {
+    const colorType = args[argIndex + 1];
+
+    if (colorType === 5) {
+      const index = args[argIndex + 2];
+      return { color: 0 <= index && index <= 255 ? this._convert8BitColor(index) : undefined, consumed: 2 };
+    }
+
+    if (colorType === 2) {
+      const r = args[argIndex + 2];
+      const g = args[argIndex + 3];
+      const b = args[argIndex + 4];
+      const valid = 0 <= r && r <= 255 && 0 <= g && g <= 255 && 0 <= b && b <= 255;
+      return { color: valid ? (r << 16) | (g << 8) | b : undefined, consumed: 4 };
+    }
+
+    return { color: undefined, consumed: 0 };
   }
 
   private _convert8BitColor(color: number): Color {

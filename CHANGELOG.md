@@ -7,13 +7,14 @@
 - ANSI: SGR 21 now renders as double underline, matching xterm and the VS Code terminal, instead of turning bold off. The colon form `4:n` is also recognised (`4:2` double, `4:0` off, other styles drawn as a single underline); other colon sub-parameters are hidden as escape sequences instead of showing up as text.
 - ANSI: when a document used more than 512 style combinations, evicting old decoration types could dispose ones that were still on screen, so colours silently disappeared. Types used by any visible editor are no longer evicted; the cap is now soft.
 - TOML grammar update: after the extension was upgraded, the bundled grammar replaced the updated one, but the stored ETag kept getting `304 Not Modified`, so the update was never downloaded again. The ETag is now sent only when the grammar on disk matches the content it was stored for.
+- ANSI: underline colour (SGR `58;5;n`, `58;2;r;g;b` and the colon forms `58:5:n`, `58:2::r:g:b`) is now rendered, and `59` resets it. Previously `58` left its colour parameters in place, so `4;58;2;255;0;0` lost the underline (the trailing `0` reset every style) and `58;5;n` turned on blinking.
+- ANSI: underline or double underline combined with strikethrough no longer drops all text decorations; the CSS value was assembled in an order the browser rejects.
 - TOML: diagnostics now name their source `TOML`, matching the `YAML` source on YAML diagnostics, instead of the upstream extension name `Even Better TOML`.
 - Packaging: stale yaml-language-server language bundles removed upstream are no longer left in `l10n/yaml-language-server/` and shipped.
 
 **Other**:
 
 - Docs: the README now shows a screenshot of each feature. The images are loaded from GitHub when the page is viewed and are not packaged into the extension.
-- `activationEvents` no longer lists `onLanguage:toml` and `onLanguage:ansi`; VS Code generates them from the contributed languages, so activation is unchanged.
 
 ## v0.0.1 2026-08-07
 

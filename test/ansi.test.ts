@@ -12,6 +12,7 @@ import {
   Parser,
   type Span,
 } from '../src/shared/ansi';
+import { buildTextDecoration } from '../src/shared/textDecoration';
 
 const ESC = '';
 
@@ -211,5 +212,67 @@ describe('Parser: 真实样本', () => {
       }
     }
     expect(colors.size).toBeGreaterThan(16);
+  });
+});
+
+describe('Parser: 下划线颜色 (SGR 58 / 59)', () => {
+  it('58;2;r;g;b 设定下划线颜色, 且颜色参数不再被当成淡色或重置', () => {
+    const spans = textSpans(new Parser().appendLine(`${ESC}[4;58;2;255;0;0mX`));
+    expect(spans[0]?.underlineColor).toBe(0xff0000);
+    expect(spans[0]?.attributeFlags).toBe(AttributeFlags.Underline);
+  });
+
+  it('58;5;n 设定下划线颜色, 且 5 不再被当成闪烁', () => {
+    const spans = textSpans(new Parser().appendLine(`${ESC}[4;58;5;1mX`));
+    expect(spans[0]?.underlineColor).toBe(NamedColor.Red);
+    expect(spans[0]?.attributeFlags).toBe(AttributeFlags.Underline);
+  });
+
+  it('58 后面的参数照常生效, 59 恢复默认, 0 一并重置', () => {
+    const spans = textSpans(
+      new Parser().appendLine(`${ESC}[58;2;1;2;3;31ma${ESC}[59mb${ESC}[58;5;2mc${ESC}[0md`),
+    );
+    expect(spans[0]).toMatchObject({ underlineColor: 0x010203, foregroundColor: NamedColor.Red });
+    expect(spans[1]?.underlineColor).toBe(DefaultStyle.underlineColor);
+    expect(spans[2]?.underlineColor).toBe(NamedColor.Green);
+    expect(spans[3]?.underlineColor).toBe(DefaultStyle.underlineColor);
+  });
+
+  it('冒号写法 58:2::r:g:b, 58:2:r:g:b 与 58:5:n 都能识别', () => {
+    const spans = textSpans(
+      createTerminalParser().appendLine(`${ESC}[4:3;58:2::1:2:3ma${ESC}[58:2:4:5:6mb${ESC}[58:5:9mc`),
+    );
+    expect(spans.map((span) => span.underlineColor)).toEqual([0x010203, 0x040506, NamedColor.BrightRed]);
+    expect(spans[0]?.attributeFlags).toBe(AttributeFlags.Underline);
+  });
+
+  it('越界的分量不改颜色, 但参数仍被跳过', () => {
+    const spans = textSpans(new Parser().appendLine(`${ESC}[58;2;999;0;0;1mX`));
+    expect(spans[0]?.underlineColor).toBe(DefaultStyle.underlineColor);
+    expect(spans[0]?.attributeFlags).toBe(AttributeFlags.Bold);
+  });
+});
+
+describe('buildTextDecoration', () => {
+  const css = (color: number) => (color === NamedColor.DefaultForeground ? undefined : `#${color.toString(16).padStart(6, '0')}`);
+  const style = (attributeFlags: number, underlineColor: number = NamedColor.DefaultForeground) => ({
+    ...DefaultStyle,
+    attributeFlags,
+    underlineColor,
+  });
+
+  it('没有线型时不设置', () => {
+    expect(buildTextDecoration(style(AttributeFlags.Bold), css)).toBeUndefined();
+  });
+
+  it('按 线型 → 样式 → 颜色 拼接, 线型关键字连写', () => {
+    expect(
+      buildTextDecoration(style(AttributeFlags.DoubleUnderline | AttributeFlags.CrossedOut, 0xff0000), css),
+    ).toBe('underline line-through double #ff0000');
+  });
+
+  it('下划线颜色只在有下划线时写入', () => {
+    expect(buildTextDecoration(style(AttributeFlags.CrossedOut, 0xff0000), css)).toBe('line-through');
+    expect(buildTextDecoration(style(AttributeFlags.Underline), css)).toBe('underline');
   });
 });

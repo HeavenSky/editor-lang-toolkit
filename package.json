@@ -48,7 +48,9 @@
   ],
   "main": "./out/extension.js",
   "activationEvents": [
-    "onLanguage:yaml"
+    "onLanguage:yaml",
+    "onLanguage:toml",
+    "onLanguage:ansi"
   ],
   "contributes": {
     "languages": [

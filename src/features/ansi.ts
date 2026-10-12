@@ -4,6 +4,7 @@ import * as ansi from '../shared/ansi';
 import { debounce } from '../shared/debounce';
 import { LruCache } from '../shared/lru';
 import { getOutput } from '../shared/output';
+import { buildTextDecoration } from '../shared/textDecoration';
 
 /**
  * ANSI 转义序列的着色与预览。
@@ -75,23 +76,26 @@ function convertColor(color: ansi.Color, explicitDefaults: boolean): vscode.Them
   return `#${color.toString(16).padStart(6, '0')}`;
 }
 
+/** `textDecoration` 是一段 CSS, 放不进 ThemeColor 对象; 命名色改写成对应的 CSS 变量, 仍随主题变化。 */
+function cssColor(color: ansi.Color): string | undefined {
+  const converted = convertColor(color, false);
+  if (converted === undefined || typeof converted === 'string') return converted;
+  return `var(--vscode-${converted.id.replace(/\./g, '-')})`;
+}
+
 function buildDecorationType(style: ansi.Style): vscode.TextEditorDecorationType {
   const inverse = (style.attributeFlags & ansi.AttributeFlags.Inverse) !== 0;
   const background = inverse ? style.foregroundColor : style.backgroundColor;
   const foreground = inverse ? style.backgroundColor : style.foregroundColor;
 
-  const decorations: string[] = [];
-  if (style.attributeFlags & ansi.AttributeFlags.Underline) decorations.push('underline');
-  if (style.attributeFlags & ansi.AttributeFlags.DoubleUnderline) decorations.push('underline double');
-  if (style.attributeFlags & ansi.AttributeFlags.CrossedOut) decorations.push('line-through');
-  if (style.attributeFlags & ansi.AttributeFlags.Overlined) decorations.push('overline');
+  const textDecoration = buildTextDecoration(style, cssColor);
 
   return vscode.window.createTextEditorDecorationType({
     backgroundColor: convertColor(background, inverse),
     color: convertColor(foreground, inverse),
     fontWeight: style.attributeFlags & ansi.AttributeFlags.Bold ? 'bold' : undefined,
     fontStyle: style.attributeFlags & ansi.AttributeFlags.Italic ? 'italic' : undefined,
-    textDecoration: decorations.length > 0 ? decorations.join(' ') : undefined,
+    textDecoration,
     // Conceal 是"隐藏", 但真把文字设成透明会让人以为文件损坏; 压到很低的透明度既表达了
     // 语义, 又留下"这里有东西"的线索。Faint 用同样的手法, 只是没那么极端。
     opacity:

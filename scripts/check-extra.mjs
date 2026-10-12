@@ -81,5 +81,14 @@ export default function checks(root) {
         ? []
         : [`清单声明 scopeName=${String(declared)}, 语法文件里是 ${String(actual)}`];
     },
+
+    '每个服务的语言都有 onLanguage 激活事件': () => {
+      // 编辑器会提示这些事件"可以删除", 但删掉后只打开 .toml 或 .ans 文件时扩展不会激活, 诊断与着色都不出现。
+      const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
+      const events = new Set(pkg.activationEvents ?? []);
+      return ['yaml', 'toml', 'ansi']
+        .filter((id) => !events.has(`onLanguage:${id}`))
+        .map((id) => `activationEvents 缺少 onLanguage:${id}`);
+    },
   };
 }
