@@ -7,9 +7,10 @@
 // 演示用的 Schema 都在工作区本地, 并关闭 SchemaStore 与 TOML 语法更新, 截图过程不访问网络.
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { launch, gitInit } from './lib/shoot-ext.mjs';
 
-const REPO = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
+const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 const SCHEMA = {
   $schema: 'http://json-schema.org/draft-07/schema#',
