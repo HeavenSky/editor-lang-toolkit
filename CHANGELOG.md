@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.0.3 2026-10-13 Python debugging for uv projects
+
+**Added**:
+
+- Python debugging for uv projects, without the Microsoft Python extensions: press F5 in a `.py` file, or use the *Python (uv)* `launch.json` templates (current file, module, attach). The debugger starts through your existing `uv` with `uv run --with debugpy`, so the program runs in the project environment and `debugpy` is never added to the project.
+
+**Changed**:
+
+- The YAML and TOML language servers now start when the first YAML or TOML file is opened, instead of whenever the extension activates — opening an ANSI file or starting a Python debug session no longer launches them.
+
 ## v0.0.2 2026-10-12 ANSI and TOML fixes
 
 **Fixed**:

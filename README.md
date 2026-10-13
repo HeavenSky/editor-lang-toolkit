@@ -6,7 +6,7 @@
 
 **English** · [简体中文](./README.zh-cn.md)
 
-Language support for **YAML**, **TOML** and **ANSI-coloured text** — schema validation, completion, hover, formatting, navigation and terminal colours.
+Language support for **YAML**, **TOML** and **ANSI-coloured text** — schema validation, completion, hover, formatting, navigation and terminal colours. Plus **Python debugging** for projects managed with uv.
 
 Both language servers are bundled. There is no CLI tool to install, no toolchain to configure, and no telemetry.
 
@@ -85,11 +85,25 @@ Colouring applies to the `ansi` language (`.ans`, `.ansi`). To cover other files
 
 That trades away the built-in `log` grammar's timestamp highlighting. It is worth it when the file actually contains escape codes — that grammar renders them as noise anyway.
 
+### Python debugging (uv)
+
+If your Python project already uses [uv](https://docs.astral.sh/uv/), you can debug it in VS Code without the Microsoft Python extensions. The debugger runs through the uv you already have, so pair it with whatever you use for editing — `ty`, `ruff`, or nothing at all.
+
+- **Press F5 in a `.py` file** — no `launch.json` needed; the current file runs with breakpoints, stepping, variables, watch and the debug console
+- **Your project environment, as is** — the program runs in the environment `uv run` resolves for the working directory, so project dependencies import normally. `debugpy` is pulled in by `uv run --with debugpy` and is never added to your project
+- **`launch.json` templates** — *Python (uv): Current File*, *Module* (`python -m`) and *Attach to debugpy*; extra `uv run` flags go in `uvArgs`, e.g. `["--with", "requests"]`
+
+```jsonc
+{ "name": "Python (uv): Current File", "type": "uvpy", "request": "launch", "program": "${file}" }
+```
+
 ---
 
 ## Requirements
 
-None. Both language servers are bundled.
+None for YAML, TOML and ANSI. Both language servers are bundled.
+
+Python debugging uses your own `uv` — it is found on `PATH` or in the usual install locations, or set `uvPath` in the launch configuration.
 
 ---
 
@@ -124,12 +138,13 @@ ANSI colouring has **no settings**. Colours come from your theme.
 
 ## Network access
 
-Two things reach the network. Both can be turned off, and neither sends anything about you.
+Three things reach the network. Each can be avoided, and none sends anything about you.
 
 | What | When | How to disable |
 | --- | --- | --- |
 | JSON Schemas referenced by your files, plus the SchemaStore catalog | On demand, while editing | `langToolkit.yaml.enabled` / `langToolkit.toml.enabled` |
 | The upstream TOML TextMate grammar | Once a week, in the background | `langToolkit.toml.grammarUpdate.enabled` |
+| `debugpy` from PyPI, fetched by uv | The first time you debug Python; uv caches it afterwards | Don't start a Python debug session |
 
 Downloaded grammar content is rejected unless it parses as JSON and declares the `source.toml` scope, and it is written atomically — a bad response cannot corrupt the bundled grammar.
 
@@ -158,6 +173,8 @@ Neither server starts until you open a matching file.
 - **ANSI colouring is tied to the `ansi` language id.** Use `files.associations` to extend it to other files; there is no regex-based opt-in, because that would require activating the extension on every window start.
 - **True-colour output creates many decoration types.** They are capped at 512 and evicted least-recently-used, so a heavily coloured log will reuse rather than accumulate them. Types still shown in a visible editor are never evicted, so the cap is soft: if the visible ANSI documents need more than 512 style combinations at once, the cache temporarily grows to that size and shrinks back once they are no longer visible.
 - **YAML formatting is Prettier.** The `yaml.format.*` settings are Prettier options passed through. If you already run Prettier in CI, the two agree by construction.
+- **Python debugging covers the debugger only.** There is no interpreter picker, test explorer or notebook support; the interpreter is whatever `uv run` resolves, or the `python` field of the launch configuration.
+- **F5 asks which debugger to use when the Microsoft Python Debugger is also installed.** Both declare Python support, so without a `launch.json` VS Code lets you pick. The two work side by side otherwise — different debug types (`uvpy` and `debugpy`), separate debugger processes, shared breakpoints.
 
 ---
 

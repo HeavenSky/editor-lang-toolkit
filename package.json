@@ -2,7 +2,7 @@
   "name": "editor-lang-toolkit",
   "displayName": "Editor Lang Toolkit",
   "description": "%extension.description%",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "publisher": "HeavenSky",
   "license": "MIT",
   "icon": "media/icon.png",
@@ -22,7 +22,8 @@
   "categories": [
     "Programming Languages",
     "Linters",
-    "Formatters"
+    "Formatters",
+    "Debuggers"
   ],
   "keywords": [
     "yaml",
@@ -30,7 +31,11 @@
     "ansi",
     "language server",
     "json schema",
-    "taplo"
+    "taplo",
+    "python",
+    "debug",
+    "uv",
+    "debugpy"
   ],
   "files": [
     "out/extension.js",
@@ -50,9 +55,154 @@
   "activationEvents": [
     "onLanguage:yaml",
     "onLanguage:toml",
-    "onLanguage:ansi"
+    "onLanguage:ansi",
+    "onDebugResolve:uvpy",
+    "onDebugInitialConfigurations",
+    "onDebugDynamicConfigurations:uvpy"
   ],
   "contributes": {
+    "breakpoints": [
+      {
+        "language": "python"
+      }
+    ],
+    "debuggers": [
+      {
+        "type": "uvpy",
+        "label": "%debug.python.label%",
+        "languages": [
+          "python"
+        ],
+        "configurationAttributes": {
+          "launch": {
+            "properties": {
+              "program": {
+                "type": "string",
+                "default": "${file}",
+                "description": "%debug.python.program%"
+              },
+              "module": {
+                "type": "string",
+                "description": "%debug.python.module%"
+              },
+              "args": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "default": [],
+                "description": "%debug.python.args%"
+              },
+              "cwd": {
+                "type": "string",
+                "default": "${workspaceFolder}",
+                "description": "%debug.python.cwd%"
+              },
+              "env": {
+                "type": "object",
+                "default": {},
+                "description": "%debug.python.env%"
+              },
+              "uvArgs": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "default": [],
+                "description": "%debug.python.uvArgs%"
+              },
+              "uvPath": {
+                "type": "string",
+                "description": "%debug.python.uvPath%"
+              },
+              "python": {
+                "type": "string",
+                "description": "%debug.python.python%"
+              },
+              "justMyCode": {
+                "type": "boolean",
+                "default": true,
+                "description": "%debug.python.justMyCode%"
+              },
+              "stopOnEntry": {
+                "type": "boolean",
+                "default": false,
+                "description": "%debug.python.stopOnEntry%"
+              },
+              "console": {
+                "enum": [
+                  "integratedTerminal",
+                  "internalConsole",
+                  "externalTerminal"
+                ],
+                "default": "integratedTerminal",
+                "description": "%debug.python.console%"
+              }
+            }
+          },
+          "attach": {
+            "properties": {
+              "connect": {
+                "type": "object",
+                "default": {
+                  "host": "127.0.0.1",
+                  "port": 5678
+                },
+                "description": "%debug.python.connect%"
+              },
+              "justMyCode": {
+                "type": "boolean",
+                "default": true,
+                "description": "%debug.python.justMyCode%"
+              }
+            }
+          }
+        },
+        "initialConfigurations": [
+          {
+            "name": "Python (uv): Current File",
+            "type": "uvpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal"
+          }
+        ],
+        "configurationSnippets": [
+          {
+            "label": "%debug.python.snippet.file%",
+            "body": {
+              "name": "Python (uv): Current File",
+              "type": "uvpy",
+              "request": "launch",
+              "program": "^\"\\${file}\"",
+              "console": "integratedTerminal"
+            }
+          },
+          {
+            "label": "%debug.python.snippet.module%",
+            "body": {
+              "name": "Python (uv): Module",
+              "type": "uvpy",
+              "request": "launch",
+              "module": "${1:package}",
+              "console": "integratedTerminal"
+            }
+          },
+          {
+            "label": "%debug.python.snippet.attach%",
+            "body": {
+              "name": "Python (uv): Attach",
+              "type": "uvpy",
+              "request": "attach",
+              "connect": {
+                "host": "127.0.0.1",
+                "port": 5678
+              }
+            }
+          }
+        ]
+      }
+    ],
     "languages": [
       {
         "id": "toml",

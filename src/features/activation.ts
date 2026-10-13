@@ -3,11 +3,29 @@ import * as vscode from 'vscode';
 import { getOutput } from '../shared/output';
 
 import { registerAnsi } from './ansi';
+import { registerPythonDebug } from './pythonDebug';
 import { restartServers, startServers } from './servers';
 import { updateTomlGrammar } from './tomlGrammar';
 
 /** 改动这些设置需要重建客户端, 光靠 `workspace/didChangeConfiguration` 传不下去。 */
 const RESTART_ON_CHANGE = ['langToolkit.yaml.enabled', 'langToolkit.toml.enabled'];
+
+/** 由语言服务器服务的语言; 只为 ANSI 或 Python 调试激活时不该启动服务器。 */
+const SERVER_LANGUAGES = new Set(['yaml', 'toml']);
+
+/** 已打开 YAML/TOML 文件就立即启动服务器, 否则等第一次打开时再启动。 */
+async function startServersWhenNeeded(context: vscode.ExtensionContext): Promise<void> {
+  if (vscode.workspace.textDocuments.some((document) => SERVER_LANGUAGES.has(document.languageId))) {
+    await startServers(context);
+    return;
+  }
+  const waiting = vscode.workspace.onDidOpenTextDocument((document) => {
+    if (!SERVER_LANGUAGES.has(document.languageId)) return;
+    waiting.dispose();
+    void startServers(context);
+  });
+  context.subscriptions.push(waiting);
+}
 
 export async function activateExtension(context: vscode.ExtensionContext): Promise<void> {
   const output = getOutput();
@@ -48,8 +66,9 @@ export async function activateExtension(context: vscode.ExtensionContext): Promi
 
   // ANSI 着色不走语言服务器, 纯装饰; 放在启动服务器之前注册, 让它不受服务器启动耗时影响。
   registerAnsi(context);
+  registerPythonDebug(context);
 
-  await startServers(context);
+  await startServersWhenNeeded(context);
 
   // 刻意不 await: 语法更新是纯后台行为, 网络慢或不通都不该拖慢激活。落盘的新语法要等下次
   // 窗口重载才生效 (清单里的 grammar 路径是静态声明), 所以这里也没有必要提示用户。

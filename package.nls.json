@@ -1,5 +1,5 @@
 {
-  "extension.description": "Self-contained YAML and TOML language support: schema validation, completion, hover, formatting and navigation; plus ANSI-coloured text rendered with real terminal colours. Nothing else to install.",
+  "extension.description": "Self-contained YAML and TOML language support: schema validation, completion, hover, formatting and navigation; plus ANSI-coloured text rendered with real terminal colours. Nothing else to install. Also debugs Python in uv projects with your existing uv, no Python extension required.",
   "category": "Lang Toolkit",
   "command.restartServers": "Restart Language Servers",
   "command.updateTomlGrammar": "Check for TOML Grammar Updates",
@@ -11,5 +11,21 @@
   "snippet.taplo.example": "Taplo settings example",
   "snippet.taplo.exampleDetail": "A schema catalog plus two formatter options",
   "command.ansiPreview": "Open ANSI Preview",
-  "command.ansiPreviewToSide": "Open ANSI Preview to the Side"
+  "command.ansiPreviewToSide": "Open ANSI Preview to the Side",
+  "debug.python.label": "Python (uv)",
+  "debug.python.program": "Python file to run.",
+  "debug.python.module": "Module to run with `python -m`, instead of `program`.",
+  "debug.python.args": "Command-line arguments passed to the program.",
+  "debug.python.cwd": "Working directory. It also decides which uv project environment is used.",
+  "debug.python.env": "Extra environment variables for the program.",
+  "debug.python.uvArgs": "Extra arguments for `uv run`, e.g. `[\"--with\", \"requests\"]`.",
+  "debug.python.uvPath": "Path to the uv executable. By default it is looked up on PATH and in common install locations.",
+  "debug.python.python": "Interpreter that runs the program. Defaults to the environment resolved by `uv run`.",
+  "debug.python.justMyCode": "Debug only your own code; skip the standard library and installed packages.",
+  "debug.python.stopOnEntry": "Pause on the first line of the program.",
+  "debug.python.console": "Where the program's input and output go.",
+  "debug.python.connect": "Host and port of a process that is listening with debugpy.",
+  "debug.python.snippet.file": "Python (uv): Current File",
+  "debug.python.snippet.module": "Python (uv): Module",
+  "debug.python.snippet.attach": "Python (uv): Attach to debugpy"
 }

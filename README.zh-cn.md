@@ -8,7 +8,7 @@
 
 > 市场页只渲染英文版 README, 不随访问者的显示语言切换; 插件界面本身是双语的.
 
-**YAML**, **TOML** 与 **ANSI 着色文本**的语言支持 —— schema 校验, 补全, 悬停提示, 格式化, 导航, 以及终端颜色.
+**YAML**, **TOML** 与 **ANSI 着色文本**的语言支持 —— schema 校验, 补全, 悬停提示, 格式化, 导航, 以及终端颜色. 另外支持调试用 uv 管理的 **Python** 项目.
 
 两个语言服务器都已打包在内. 不需要安装任何 CLI 工具, 不需要配置工具链, 也没有遥测.
 
@@ -87,11 +87,25 @@ VS Code 内置了完整的 JSON 语言服务. 对 YAML 只提供了 TextMate 语
 
 代价是失去内置 `log` 语法的时间戳着色. 当文件里确实含转义码时这是划算的 —— 那种情况下内置语法本来也只会把它们渲染成噪声.
 
+### Python 调试 (uv)
+
+如果你的 Python 项目已经在用 [uv](https://docs.astral.sh/uv/), 不装微软的 Python 扩展也能在 VS Code 里调试. 调试器经由你已有的 uv 启动, 编辑侧用什么都可以 —— `ty`, `ruff`, 或者什么都不用.
+
+- **在 `.py` 文件里直接按 F5** —— 不需要 `launch.json`; 当前文件带断点运行, 支持单步, 变量, 监视与调试控制台
+- **原样使用项目环境** —— 程序运行在 `uv run` 为工作目录解析出的环境里, 项目依赖照常 import. `debugpy` 由 `uv run --with debugpy` 临时带上, 不会加进你的项目
+- **`launch.json` 模板** —— *Python (uv): 当前文件*, *模块* (`python -m`) 与 *附加到 debugpy*; 额外的 `uv run` 参数写在 `uvArgs`, 例如 `["--with", "requests"]`
+
+```jsonc
+{ "name": "Python (uv): Current File", "type": "uvpy", "request": "launch", "program": "${file}" }
+```
+
 ---
 
 ## 环境要求
 
-无. 两个语言服务器都已打包在内.
+YAML, TOML 与 ANSI 无任何要求, 两个语言服务器都已打包在内.
+
+Python 调试使用你自己的 `uv` —— 从 `PATH` 或常见安装位置查找, 也可以在调试配置里设置 `uvPath`.
 
 ---
 
@@ -126,12 +140,13 @@ ANSI 着色**没有任何设置项**, 颜色来自你的主题.
 
 ## 网络访问
 
-有两处会访问网络. 两者都可关闭, 且都不会发送与你有关的任何信息.
+有三处会访问网络. 每一处都可以避开, 且都不会发送与你有关的任何信息.
 
 | 内容 | 时机 | 关闭方式 |
 | --- | --- | --- |
 | 文件中引用的 JSON Schema, 以及 SchemaStore 目录 | 编辑时按需 | `langToolkit.yaml.enabled` / `langToolkit.toml.enabled` |
 | 上游的 TOML TextMate 语法 | 每周一次, 后台进行 | `langToolkit.toml.grammarUpdate.enabled` |
+| uv 从 PyPI 获取的 `debugpy` | 第一次调试 Python 时; 之后走 uv 缓存 | 不启动 Python 调试即可 |
 
 下载的语法内容必须能解析为 JSON 且声明了 `source.toml` scope 才会被接受, 并且采用原子写入 —— 一次坏的响应不可能破坏内置语法.
 
@@ -160,6 +175,8 @@ Taplo 上游把 WebAssembly 以 base64 内联在一个 34 MB 的 JavaScript 文�
 - **ANSI 着色绑定在 `ansi` 语言 id 上.** 用 `files.associations` 可以扩展到其他文件; 没有提供基于正则的开关, 因为那需要让扩展在每次窗口启动时都激活.
 - **真彩色输出会创建较多装饰类型.** 上限为 512 个并按最久未使用逐出, 因此色彩密集的日志会复用而不是无限累积. 可见编辑器仍在显示的类型不会被逐出, 所以这是软上界: 可见的 ANSI 文档同时需要超过 512 种样式组合时, 缓存会暂时增长到所需数量, 不再可见后回落.
 - **YAML 的格式化就是 Prettier.** `yaml.format.*` 是透传给 Prettier 的选项. 如果你的 CI 里已经在跑 Prettier, 两边的结果天然一致.
+- **Python 调试只提供调试器本身.** 没有解释器选择界面, 测试面板与 notebook 支持; 解释器就是 `uv run` 解析出的那个, 或调试配置里的 `python` 字段.
+- **同时装了微软的 Python Debugger 时, 按 F5 会询问用哪个调试器.** 两者都声明支持 Python, 没有 `launch.json` 时由 VS Code 让你选. 除此之外两者可以并存 —— 调试类型不同 (`uvpy` 与 `debugpy`), 调试器进程各自独立, 断点共用.
 
 ---
 
