@@ -2,7 +2,7 @@
   "name": "editor-lang-toolkit",
   "displayName": "Editor Lang Toolkit",
   "description": "%extension.description%",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "publisher": "HeavenSky",
   "author": {
     "name": "calla",

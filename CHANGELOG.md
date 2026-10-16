@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.0.4 2026-10-16 Rewritten docs
+
+**Changed**:
+
+- Docs: the README is now a short overview; schemas, ANSI, Python debugging, network access and troubleshooting each have their own page under [docs](https://github.com/HeavenSky/editor-lang-toolkit/blob/HEAD/docs/README.md), and the Chinese pages now live under `zh/`.
+
 ## v0.0.3 2026-10-13 Python debugging for uv projects
 
 **Added**:
