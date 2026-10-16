@@ -4,7 +4,7 @@
 
 **Added**:
 
-- Python debugging for uv projects, without the Microsoft Python extensions: press F5 in a `.py` file, or use the *Python (uv)* `launch.json` templates (current file, module, attach). The debugger starts through your existing `uv` with `uv run --with debugpy`, so the program runs in the project environment and `debugpy` is never added to the project.
+- Python debugging for uv projects, without the Microsoft Python extensions: press F5 in a `.py` file, or use the *Python (uv)* `launch.json` templates ([guide](https://github.com/HeavenSky/editor-lang-toolkit/blob/HEAD/docs/python-debugging.md#debug-the-current-file)).
 
 **Changed**:
 

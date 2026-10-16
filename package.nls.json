@@ -1,5 +1,5 @@
 {
-  "extension.description": "Self-contained YAML and TOML language support: schema validation, completion, hover, formatting and navigation; plus ANSI-coloured text rendered with real terminal colours. Nothing else to install. Also debugs Python in uv projects with your existing uv, no Python extension required.",
+  "extension.description": "Schema validation, completion and formatting for YAML and TOML, real terminal colours for ANSI logs, and F5 debugging for uv Python projects, with no language server or CLI to install.",
   "category": "Lang Toolkit",
   "command.restartServers": "Restart Language Servers",
   "command.updateTomlGrammar": "Check for TOML Grammar Updates",

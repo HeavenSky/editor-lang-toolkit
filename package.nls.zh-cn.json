@@ -1,5 +1,5 @@
 {
-  "extension.description": "自包含的 YAML 与 TOML 语言支持: schema 校验, 补全, 悬停提示, 格式化与导航; 另将 ANSI 着色文本按真实终端颜色渲染. 无需另外安装任何工具. 还能用你已有的 uv 调试 uv 项目里的 Python, 不需要 Python 扩展.",
+  "extension.description": "YAML 与 TOML 的 schema 校验, 补全和格式化, ANSI 日志按终端真实颜色显示, uv 项目里的 Python 按 F5 即可调试, 不用另装语言服务器或命令行工具.",
   "category": "Lang Toolkit",
   "command.restartServers": "重启语言服务器",
   "command.updateTomlGrammar": "检查 TOML 语法更新",

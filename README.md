@@ -1,207 +1,66 @@
 # Editor Lang Toolkit
 
+**English** · [简体中文](./zh/README.md)
+
+Schema validation, completion and formatting for YAML and TOML, real terminal colours for ANSI logs, and F5 debugging for uv Python projects, with no language server or CLI to install.
+
 [![VS Marketplace](https://vsmarketplacebadges.dev/version-short/HeavenSky.editor-lang-toolkit.svg?label=VS%20Marketplace)](https://marketplace.visualstudio.com/items?itemName=HeavenSky.editor-lang-toolkit)
 [![Installs](https://vsmarketplacebadges.dev/installs-short/HeavenSky.editor-lang-toolkit.svg)](https://marketplace.visualstudio.com/items?itemName=HeavenSky.editor-lang-toolkit)
 [![License](https://img.shields.io/badge/license-MIT-blue)](./LICENSE.txt)
 
-**English** · [简体中文](./README.zh-cn.md)
+VS Code ships a full language service for JSON, but only a syntax grammar for YAML and nothing at all for TOML. Extensions that fill the gap often ask you to install a CLI such as `taplo` first. **This one bundles both language servers, so opening a config file is all it takes.** There is no telemetry.
 
-Language support for **YAML**, **TOML** and **ANSI-coloured text** — schema validation, completion, hover, formatting, navigation and terminal colours. Plus **Python debugging** for projects managed with uv.
+![A YAML file checked against its JSON Schema: "replicas: three" is flagged as "Incorrect type. Expected integer"](media/screenshots/yaml-validation.png)
 
-Both language servers are bundled. There is no CLI tool to install, no toolchain to configure, and no telemetry.
+## Get started
 
----
+1. Install the extension:
 
-## Why this extension exists
+   ```bash
+   code --install-extension HeavenSky.editor-lang-toolkit
+   ```
 
-VS Code ships a complete language service for JSON. For YAML it ships only a TextMate grammar. For TOML it ships nothing at all.
+2. Open a well-known YAML file, such as a GitHub workflow: mistakes are underlined right away.
+3. For any other YAML file, add a schema on the first line, then press `Ctrl+Space` for completions:
 
-|                                   | JSON | YAML       | TOML       |
-| --------------------------------- | ---- | ---------- | ---------- |
-| Syntax highlighting, built in     | yes  | yes        | **no**     |
-| Language service, built in        | yes  | **no**     | **no**     |
-| Provided by this extension        | —    | **yes**    | **yes**    |
+   ```yaml
+   # yaml-language-server: $schema=./service.schema.json
+   ```
 
-Most extensions that fill these gaps ask you to install a binary first — `taplo`, `buf`, a formatter, a linter. That model makes sense for a *tool* extension. It does not make sense for a *language* extension: opening a config file should just work.
+## Catch config mistakes as you type
 
----
+YAML and TOML files are validated against JSON Schema while you edit, and the same schema drives completion and hover. YAML picks the schema from a modeline, an inline `$schema`, the `yaml.schemas` setting or the SchemaStore catalog; TOML reads its associations from `.taplo.toml`. See [Validate YAML and TOML against a schema](docs/schemas.md) for the full rules.
 
-## Features
+![Completion in a YAML file, with values and descriptions taken from its JSON Schema](media/screenshots/yaml-completion.png)
 
-### YAML
+## Share one TOML config between the editor and CI
 
-Powered by a bundled copy of [yaml-language-server](https://github.com/redhat-developer/yaml-language-server).
+The extension reads the same `.taplo.toml` as the `taplo` CLI, so formatting and schema rules match in both places without a second copy. Without that file, the `langToolkit.taplo` setting carries the same options.
 
-**Validation**
+![A TOML file with syntax highlighting and a schema error](media/screenshots/toml-validation.png)
 
-- JSON Schema, drafts 04 / 07 / 2019-09 / 2020-12
-- Unused anchor detection
-- Flow-style rules (`yaml.style.flowMapping`, `yaml.style.flowSequence`)
-- Mapping key order (`yaml.keyOrdering`)
-- Kubernetes CRD schemas
+## Read terminal logs in their real colours
 
-![YAML validation against a JSON Schema](./media/screenshots/yaml-validation.png)
-
-**Schema discovery** — four ways, in priority order:
-
-1. A modeline: `# yaml-language-server: $schema=<url>`
-2. An inline `$schema` property
-3. The `yaml.schemas` setting
-4. The [SchemaStore](https://www.schemastore.org/) catalog, matched automatically by filename
-
-**Editing** — completion, hover, document symbols, folding, go-to-definition for anchors, rename, document links, selection ranges, code actions, code lenses, formatting and format-on-type.
-
-![YAML completion from a JSON Schema](./media/screenshots/yaml-completion.png)
-
-### TOML
-
-Powered by a bundled WebAssembly build of [Taplo](https://github.com/tamasfe/taplo).
-
-- Syntax highlighting with semantic tokens
-- JSON Schema validation, with associations from `.taplo.toml` or from settings
-- Completion, hover, document symbols, folding, rename, document links
-- Formatting, configurable through `.taplo.toml` or the `langToolkit.taplo` setting
-
-![TOML highlighting and schema validation](./media/screenshots/toml-validation.png)
-
-A `.taplo.toml` in your workspace is picked up automatically — the same file the `taplo` CLI reads, so editor and CI stay in sync without duplicating configuration.
-
-### ANSI
-
-Captured terminal output is rendered with its real colours instead of raw escape codes.
-
-- **Full SGR coverage** — 16 colours and their bright variants, 256-colour (`38;5;n`) and **true colour** (`38;2;r;g;b`); bold, faint, italic, underline, double underline, strikethrough, overline, inverse and conceal
-- **Colours follow your theme** — mapped to VS Code's `terminal.ansi*` palette, so there is nothing to configure and nothing to keep in sync with your colour scheme
-- **Control sequences are recognised, not mangled** — cursor moves and line clears are dimmed rather than rendered as garbage. That matters more than it sounds: progress bars, spinners and `docker build` output are made almost entirely of them
-- **Preview opens a real editor**, not a webview — search, selection, copy and side-by-side scrolling all behave normally, because it *is* an editor
-
-![ANSI colouring and preview](./media/screenshots/ansi-preview.png)
-
-Colouring applies to the `ansi` language (`.ans`, `.ansi`). To cover other files:
+Files with the `ansi` language (`.ans`, `.ansi`) are shown with their escape codes rendered as colours, from the 16 basic colours to 24-bit true colour. Colours come from your theme's terminal palette, so there is nothing to configure. To colour other files, such as logs:
 
 ```jsonc
 { "files.associations": { "*.log": "ansi" } }
 ```
 
-That trades away the built-in `log` grammar's timestamp highlighting. It is worth it when the file actually contains escape codes — that grammar renders them as noise anyway.
+![An ANSI log rendered in colour, next to a preview with the escape codes removed](media/screenshots/ansi-preview.png)
 
-### Python debugging (uv)
+## Debug a uv project with F5
 
-If your Python project already uses [uv](https://docs.astral.sh/uv/), you can debug it in VS Code without the Microsoft Python extensions. The debugger runs through the uv you already have, so pair it with whatever you use for editing — `ty`, `ruff`, or nothing at all.
+Press F5 in a `.py` file to debug it with breakpoints, stepping and variables, without the Microsoft Python extensions; you only need `uv` installed. The program runs in the environment `uv run` resolves for your project, and `debugpy` is fetched by uv on the fly, never added to your project. [Debug Python in a uv project](docs/python-debugging.md) covers `launch.json` templates and attaching.
 
-- **Press F5 in a `.py` file** — no `launch.json` needed; the current file runs with breakpoints, stepping, variables, watch and the debug console
-- **Your project environment, as is** — the program runs in the environment `uv run` resolves for the working directory, so project dependencies import normally. `debugpy` is pulled in by `uv run --with debugpy` and is never added to your project
-- **`launch.json` templates** — *Python (uv): Current File*, *Module* (`python -m`) and *Attach to debugpy*; extra `uv run` flags go in `uvArgs`, e.g. `["--with", "requests"]`
+## When not to use it
 
-```jsonc
-{ "name": "Python (uv): Current File", "type": "uvpy", "request": "launch", "program": "${file}" }
-```
+The Python support is a debugger only: if you want an interpreter picker, a test explorer or notebooks, use the Microsoft Python extension. If you need TOML formatting or validation outside the editor, run the `taplo` CLI against the same `.taplo.toml`; this extension does not ship a command-line tool.
 
----
+## Learn more
 
-## Requirements
-
-None for YAML, TOML and ANSI. Both language servers are bundled.
-
-Python debugging uses your own `uv` — it is found on `PATH` or in the usual install locations, or set `uvPath` in the launch configuration.
-
----
-
-## Commands
-
-All commands are under the **Lang Toolkit** category in the Command Palette.
-
-| Command | Description |
-| --- | --- |
-| `Restart Language Servers` | Restarts both servers without reloading the window |
-| `Check for TOML Grammar Updates` | Fetches the grammar now instead of waiting for the weekly check |
-| `Open ANSI Preview` | Opens the current file with escape sequences stripped |
-| `Open ANSI Preview to the Side` | The same, in a side-by-side editor |
-
----
-
-## Settings
-
-| Setting | Default | Description |
-| --- | --- | --- |
-| `langToolkit.yaml.enabled` | `true` | Run the YAML language server. Syntax highlighting is unaffected. |
-| `langToolkit.toml.enabled` | `true` | Run the TOML language server. Syntax highlighting is unaffected. |
-| `langToolkit.taplo` | `{}` | Settings handed to Taplo, in camelCase. See the [Taplo reference](https://taplo.tamasfe.dev/configuration/file.html). |
-| `langToolkit.toml.grammarUpdate.enabled` | `true` | Check weekly for a newer TOML grammar in the background. |
-| `langToolkit.toml.grammarUpdate.url` | upstream grammar | Where that grammar is fetched from. |
-
-YAML schema associations use the standard `yaml.schemas` and `yaml.schemaStore.*` keys, which `yaml-language-server` reads directly — existing configuration keeps working unchanged.
-
-ANSI colouring has **no settings**. Colours come from your theme.
-
----
-
-## Network access
-
-Three things reach the network. Each can be avoided, and none sends anything about you.
-
-| What | When | How to disable |
-| --- | --- | --- |
-| JSON Schemas referenced by your files, plus the SchemaStore catalog | On demand, while editing | `langToolkit.yaml.enabled` / `langToolkit.toml.enabled` |
-| The upstream TOML TextMate grammar | Once a week, in the background | `langToolkit.toml.grammarUpdate.enabled` |
-| `debugpy` from PyPI, fetched by uv | The first time you debug Python; uv caches it afterwards | Don't start a Python debug session |
-
-Downloaded grammar content is rejected unless it parses as JSON and declares the `source.toml` scope, and it is written atomically — a bad response cannot corrupt the bundled grammar.
-
-**There is no telemetry.**
-
----
-
-## Size
-
-Bundling two language servers costs space:
-
-| Component | Size |
-| --- | --- |
-| `out/extension.js` — client, YAML server, Taplo glue | ~1.7 MB |
-| `out/taplo.wasm` | ~25 MB (~6.6 MB compressed) |
-
-Taplo publishes its WebAssembly as base64 inlined into a 34 MB JavaScript file. This extension extracts it into a standalone `.wasm` at build time, cutting roughly a third off the download — base64's 4/3 expansion is not something gzip can compress back to the density of the raw binary.
-
-Neither server starts until you open a matching file.
-
----
-
-## Known limitations
-
-- **TOML grammar updates need a window reload.** `contributes.grammars` is read when the extension loads, so a newly downloaded grammar cannot take effect in the running window. This is a VS Code mechanism, not something the extension can work around.
-- **ANSI colouring is tied to the `ansi` language id.** Use `files.associations` to extend it to other files; there is no regex-based opt-in, because that would require activating the extension on every window start.
-- **True-colour output creates many decoration types.** They are capped at 512 and evicted least-recently-used, so a heavily coloured log will reuse rather than accumulate them. Types still shown in a visible editor are never evicted, so the cap is soft: if the visible ANSI documents need more than 512 style combinations at once, the cache temporarily grows to that size and shrinks back once they are no longer visible.
-- **YAML formatting is Prettier.** The `yaml.format.*` settings are Prettier options passed through. If you already run Prettier in CI, the two agree by construction.
-- **Python debugging covers the debugger only.** There is no interpreter picker, test explorer or notebook support; the interpreter is whatever `uv run` resolves, or the `python` field of the launch configuration.
-- **F5 asks which debugger to use when the Microsoft Python Debugger is also installed.** Both declare Python support, so without a `launch.json` VS Code lets you pick. The two work side by side otherwise — different debug types (`uvpy` and `debugpy`), separate debugger processes, shared breakpoints.
-
----
-
-## Credits
-
-This extension stands on three upstream projects, all MIT licensed:
-
-- [yaml-language-server](https://github.com/redhat-developer/yaml-language-server) — Red Hat
-- [Taplo](https://github.com/tamasfe/taplo) — Ferenc Tamás
-- [vscode-ansi](https://github.com/iliazeus/vscode-ansi) — Ilia Pozdnyakov, whose ANSI parser is used here
-
-Full attributions are in [NOTICE.md](./NOTICE.md).
-
-## Development
-
-```bash
-npm ci
-npm run check       # icon, manifest, l10n and template drift gates
-npm run typecheck
-npm test
-npm run package     # build artifacts/<name>-<version>.vsix and assert its contents
-```
-
-With npm 12, `npm ci` only accepts a lockfile resolved from `registry.npmjs.org`, and dependency install scripts (`esbuild`, `@vscode/vsce-sign`, `fsevents`) are skipped by default. None of them is needed to check, test or package; approve one with `npm install-scripts approve <package>` only if signing or publishing locally fails. CI uses the npm bundled with the Node version in `.nvmrc` and is not affected.
-
-`npm run shots` regenerates the feature screenshots by hand (macOS; a VS Code window pops up while it runs) and writes them to `media/screenshots/`. Screenshots are not part of packaging or publishing.
+The [guides](docs/README.md) cover schemas, ANSI files, Python debugging, network access and troubleshooting. Commands and settings are listed on the marketplace page's **Feature Contributions** tab. See the [changelog](./CHANGELOG.md) for what changed in each release, and [NOTICE.md](./NOTICE.md) for the upstream projects this extension bundles.
 
 ## License
 
-MIT — see [LICENSE.txt](./LICENSE.txt).
+[MIT](./LICENSE.txt)
