@@ -61,7 +61,7 @@ Python 部分只有调试器：需要解释器选择、测试资源管理器或 
 
 ## 延伸阅读
 
-[使用指南](docs/README.md)涵盖 schema、ANSI 文件、Python 调试、网络访问与故障排查。命令和设置的完整清单见扩展市场页的 **Feature Contributions** 标签。各版本的变化见英文 [CHANGELOG](../CHANGELOG.md)，打包在内的上游项目见 [NOTICE.md](../NOTICE.md)。
+[使用指南](docs/README.md)涵盖 schema、ANSI 文件、Python 调试、网络访问与故障排查。命令和设置的完整清单见扩展市场页的 **Feature Contributions** 标签。各版本的变化见[更新日志](CHANGELOG.md)，打包在内的上游项目见 [NOTICE.md](../NOTICE.md)。
 
 ## 许可证
 

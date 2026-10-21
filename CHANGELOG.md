@@ -1,5 +1,7 @@
 # Changelog
 
+**English** · [简体中文](./zh/CHANGELOG.md)
+
 ## v0.0.4 2026-10-16 Rewritten docs
 
 **Changed**:
