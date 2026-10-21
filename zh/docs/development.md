@@ -6,12 +6,14 @@
 
 ## 构建与测试
 
-依次运行下面五条命令，就能从全新克隆得到一个测试过的 VSIX，放在 `artifacts/` 下。最后一条 `npm run package` 还会断言包内内容。
+依次运行下面七条命令，就能从全新克隆得到一个测试过的 VSIX，放在 `artifacts/` 下。最后一条 `npm run package` 还会断言包内内容。
 
 ```bash
 npm ci
-npm run check       # 图标、清单、l10n 与模板漂移检查
+npm run check       # 图标、清单与 l10n 检查
 npm run typecheck
+npm run lint:check  # oxlint；`npm run lint` 会同时自动修复
+npm run fmt:check   # oxfmt；`npm run fmt` 直接格式化
 npm test
 npm run package     # 生成 artifacts/<name>-<version>.vsix 并断言包内内容
 ```

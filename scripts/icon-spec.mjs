@@ -14,68 +14,68 @@
  * 底座 (画布尺寸, 圆角, 背景渐变, 描边) 来自 `lib/icon-brand.mjs`, 这里只描述前景。
  * 不要手写 `media/icon.svg` —— 几何只在这里描述一次, SVG 与 PNG 都由 `gen-icon.mjs` 生成。
  */
-import { ACCENT_FROM, ACCENT_TO, SIZE, baseShapes } from './lib/icon-brand.mjs';
+import { ACCENT_FROM, ACCENT_TO, SIZE, baseShapes } from "./lib/icon-brand.mjs";
 
 /** 语法着色的调色板, 取自主流暗色主题里各类 token 的惯用色。 */
-const PUNCTUATION = '#C792EA';
-const KEY = '#6FD6FF';
-const STRING = '#4EDD6E';
-const NUMBER = '#FFC145';
-const ACCENT = '#FF6B60';
+const PUNCTUATION = "#C792EA";
+const KEY = "#6FD6FF";
+const STRING = "#4EDD6E";
+const NUMBER = "#FFC145";
+const ACCENT = "#FF6B60";
 
 /** 提示符用品牌渐变, 与三种语言的 token 色区分开。 */
-const PROMPT = { kind: 'linear', from: ACCENT_FROM, to: ACCENT_TO, direction: 'diagonal' };
+const PROMPT = { kind: "linear", from: ACCENT_FROM, to: ACCENT_TO, direction: "diagonal" };
 
 const segment = (x1, y, x2, stroke) => ({
-  kind: 'polyline',
-  points: [
-    [x1, y],
-    [x2, y],
-  ],
-  stroke,
-  strokeWidth: 13,
+	kind: "polyline",
+	points: [
+		[x1, y],
+		[x2, y],
+	],
+	stroke,
+	strokeWidth: 13,
 });
 
 /** 方括号的一侧: 竖笔画加上下两条短臂; `arm` 为正朝右, 为负朝左。 */
 const bracket = (x, yTop, yBottom, arm) => ({
-  kind: 'polyline',
-  points: [
-    [x + arm, yTop],
-    [x, yTop],
-    [x, yBottom],
-    [x + arm, yBottom],
-  ],
-  stroke: PUNCTUATION,
-  strokeWidth: 12,
+	kind: "polyline",
+	points: [
+		[x + arm, yTop],
+		[x, yTop],
+		[x, yBottom],
+		[x + arm, yBottom],
+	],
+	stroke: PUNCTUATION,
+	strokeWidth: 12,
 });
 
 export default {
-  size: SIZE,
-  label: 'Editor Lang Toolkit',
-  shapes: [
-    ...baseShapes(),
+	size: SIZE,
+	label: "Editor Lang Toolkit",
+	shapes: [
+		...baseShapes(),
 
-    // TOML 的 table 头: [ 表名 ]
-    bracket(67, 64, 100, 16),
-    segment(99, 82, 147, NUMBER),
-    bracket(179, 64, 100, -16),
+		// TOML 的 table 头: [ 表名 ]
+		bracket(67, 64, 100, 16),
+		segment(99, 82, 147, NUMBER),
+		bracket(179, 64, 100, -16),
 
-    // 终端提示符
-    {
-      kind: 'polyline',
-      points: [
-        [63, 134],
-        [91, 162],
-        [63, 190],
-      ],
-      stroke: PROMPT,
-      strokeWidth: 15,
-    },
+		// 终端提示符
+		{
+			kind: "polyline",
+			points: [
+				[63, 134],
+				[91, 162],
+				[63, 190],
+			],
+			stroke: PROMPT,
+			strokeWidth: 15,
+		},
 
-    // 着色后的输出: 每行由两段不同颜色组成, 与真实的语法高亮同构
-    segment(111, 146, 145, KEY),
-    segment(157, 146, 193, STRING),
-    segment(111, 178, 137, ACCENT),
-    segment(149, 178, 175, NUMBER),
-  ],
+		// 着色后的输出: 每行由两段不同颜色组成, 与真实的语法高亮同构
+		segment(111, 146, 145, KEY),
+		segment(157, 146, 193, STRING),
+		segment(111, 178, 137, ACCENT),
+		segment(149, 178, 175, NUMBER),
+	],
 };

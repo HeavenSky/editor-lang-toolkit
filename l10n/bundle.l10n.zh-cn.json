@@ -1,8 +1,8 @@
 {
-  "Language servers restarted.": "语言服务器已重启.",
-  "Reload Window": "重载窗口",
-  "TOML grammar updated. Reload the window to apply it.": "TOML 语法已更新, 重载窗口后生效.",
-  "The TOML grammar is already up to date.": "TOML 语法已是最新.",
-  "Failed to update the TOML grammar: {0}": "更新 TOML 语法失败: {0}",
-  "Python debugging needs uv, which was not found. Install uv or set \"uvPath\" in the launch configuration.": "Python 调试需要 uv, 但未找到. 请安装 uv, 或在调试配置中设置 \"uvPath\"."
+	"Language servers restarted.": "语言服务器已重启.",
+	"Reload Window": "重载窗口",
+	"TOML grammar updated. Reload the window to apply it.": "TOML 语法已更新, 重载窗口后生效.",
+	"The TOML grammar is already up to date.": "TOML 语法已是最新.",
+	"Failed to update the TOML grammar: {0}": "更新 TOML 语法失败: {0}",
+	"Python debugging needs uv, which was not found. Install uv or set \"uvPath\" in the launch configuration.": "Python 调试需要 uv, 但未找到. 请安装 uv, 或在调试配置中设置 \"uvPath\"."
 }

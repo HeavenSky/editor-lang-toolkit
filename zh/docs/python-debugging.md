@@ -12,15 +12,15 @@
 
 ## 保存调试配置
 
-通过 **运行 → 添加配置…** 添加配置，有三个 *Python (uv)* 模板：*当前文件*、*模块*（`python -m`）与 *附加到 debugpy*（英文界面：Current File、Module、Attach to debugpy）。最简单的启动配置：
+通过 **运行 → 添加配置…** 添加配置，有三个 _Python (uv)_ 模板：_当前文件_、_模块_（`python -m`）与 _附加到 debugpy_（英文界面：Current File、Module、Attach to debugpy）。最简单的启动配置：
 
 ```jsonc
 {
-  "name": "Python (uv): Current File",
-  "type": "uvpy",
-  "request": "launch",
-  "program": "${file}",
-  "console": "integratedTerminal"
+	"name": "Python (uv): Current File",
+	"type": "uvpy",
+	"request": "launch",
+	"program": "${file}",
+	"console": "integratedTerminal",
 }
 ```
 
@@ -36,7 +36,7 @@
 
 ## 附加到运行中的程序
 
-先以 debugpy 监听模式启动程序，再运行 *附加到 debugpy* 模板添加的 *Python (uv): Attach* 配置：
+先以 debugpy 监听模式启动程序，再运行 _附加到 debugpy_ 模板添加的 _Python (uv): Attach_ 配置：
 
 ```bash
 uv run --with debugpy python -m debugpy --listen 5678 --wait-for-client main.py
@@ -44,10 +44,10 @@ uv run --with debugpy python -m debugpy --listen 5678 --wait-for-client main.py
 
 ```jsonc
 {
-  "name": "Python (uv): Attach",
-  "type": "uvpy",
-  "request": "attach",
-  "connect": { "host": "127.0.0.1", "port": 5678 }
+	"name": "Python (uv): Attach",
+	"type": "uvpy",
+	"request": "attach",
+	"connect": { "host": "127.0.0.1", "port": 5678 },
 }
 ```
 

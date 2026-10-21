@@ -25,11 +25,7 @@ YAML files are matched to a schema in this order; the first match wins:
 The YAML server is [yaml-language-server](https://github.com/redhat-developer/yaml-language-server) and reads the standard `yaml.*` settings directly, so an existing `yaml.schemas` or `yaml.schemaStore.*` configuration works unchanged:
 
 ```jsonc
-{
-  "yaml.schemas": {
-    "./schemas/service.schema.json": "deploy/*.yaml"
-  }
-}
+{ "yaml.schemas": { "./schemas/service.schema.json": "deploy/*.yaml" } }
 ```
 
 Validation supports JSON Schema drafts 04, 07, 2019-09 and 2020-12, including Kubernetes CRD schemas. It also reports unused anchors, and can enforce flow style (`yaml.style.flowMapping`, `yaml.style.flowSequence`) and mapping key order (`yaml.keyOrdering`).
@@ -46,16 +42,13 @@ Without a config file, put the same options in the `langToolkit.taplo` setting, 
 
 ```jsonc
 {
-  "langToolkit.taplo": {
-    "schema": {
-      "enabled": true,
-      "catalogs": ["https://www.schemastore.org/api/json/catalog.json"]
-    },
-    "formatter": {
-      "alignEntries": false,
-      "indentTables": false
-    }
-  }
+	"langToolkit.taplo": {
+		"schema": {
+			"enabled": true,
+			"catalogs": ["https://www.schemastore.org/api/json/catalog.json"],
+		},
+		"formatter": { "alignEntries": false, "indentTables": false },
+	},
 }
 ```
 

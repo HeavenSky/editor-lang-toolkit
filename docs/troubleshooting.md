@@ -12,7 +12,7 @@ Fix: run `which uv` (macOS, Linux) or `where uv` (Windows) in a terminal and put
 
 **F5 asks which debugger to use.**
 Cause: the Microsoft Python Debugger is also installed, and both declare Python support.
-Fix: pick *Python (uv)*, or save a `launch.json` configuration with `"type": "uvpy"` so F5 no longer asks.
+Fix: pick _Python (uv)_, or save a `launch.json` configuration with `"type": "uvpy"` so F5 no longer asks.
 
 **`ModuleNotFoundError` for a package that is in your project.**
 Cause: the working directory is not inside the uv project, so `uv run` resolved a different environment. This happens when the workspace folder is above the project, for example in a monorepo.

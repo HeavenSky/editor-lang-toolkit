@@ -1,31 +1,31 @@
-import * as vscode from 'vscode';
+import * as vscode from "vscode";
 
 import {
-  type EtagRecord,
-  etagForRequest,
-  GRAMMAR_UPDATE_INTERVAL_MS,
-  grammarDigest,
-  isValidTomlGrammar,
-  shouldCheckForUpdate,
-} from '../shared/grammar';
-import { getOutput } from '../shared/output';
+	type EtagRecord,
+	etagForRequest,
+	GRAMMAR_UPDATE_INTERVAL_MS,
+	grammarDigest,
+	isValidTomlGrammar,
+	shouldCheckForUpdate,
+} from "../shared/grammar";
+import { getOutput } from "../shared/output";
 
-const LAST_CHECKED_KEY = 'tomlGrammar.lastCheckedAt';
+const LAST_CHECKED_KEY = "tomlGrammar.lastCheckedAt";
 /** 旧版本只存 ETag 字符串, 不知道对应哪份磁盘内容; 读到即清掉, 不再使用。 */
-const LEGACY_ETAG_KEY = 'tomlGrammar.etag';
-const ETAG_RECORD_KEY = 'tomlGrammar.etagRecord';
+const LEGACY_ETAG_KEY = "tomlGrammar.etag";
+const ETAG_RECORD_KEY = "tomlGrammar.etagRecord";
 
-const GRAMMAR_RELATIVE_PATH = ['syntaxes', 'toml.tmLanguage.json'];
+const GRAMMAR_RELATIVE_PATH = ["syntaxes", "toml.tmLanguage.json"];
 
 export type UpdateOutcome =
-  | { kind: 'disabled' }
-  | { kind: 'throttled' }
-  | { kind: 'unchanged' }
-  | { kind: 'updated' }
-  | { kind: 'failed'; reason: string };
+	| { kind: "disabled" }
+	| { kind: "throttled" }
+	| { kind: "unchanged" }
+	| { kind: "updated" }
+	| { kind: "failed"; reason: string };
 
 function grammarUri(context: vscode.ExtensionContext): vscode.Uri {
-  return vscode.Uri.joinPath(context.extensionUri, ...GRAMMAR_RELATIVE_PATH);
+	return vscode.Uri.joinPath(context.extensionUri, ...GRAMMAR_RELATIVE_PATH);
 }
 
 /**
@@ -43,106 +43,111 @@ function grammarUri(context: vscode.ExtensionContext): vscode.Uri {
  * 扩展目录在部分安装形态下只读 (企业管控, 某些远程场景), 写入失败按普通失败处理并保留旧文件。
  */
 export async function updateTomlGrammar(
-  context: vscode.ExtensionContext,
-  options: { force: boolean },
+	context: vscode.ExtensionContext,
+	options: { force: boolean }
 ): Promise<UpdateOutcome> {
-  const output = getOutput();
-  const config = vscode.workspace.getConfiguration('langToolkit');
+	const output = getOutput();
+	const config = vscode.workspace.getConfiguration("langToolkit");
 
-  if (!options.force && !config.get<boolean>('toml.grammarUpdate.enabled', true)) {
-    return { kind: 'disabled' };
-  }
+	if (!options.force && !config.get<boolean>("toml.grammarUpdate.enabled", true)) {
+		return { kind: "disabled" };
+	}
 
-  const lastCheckedAt = context.globalState.get<number>(LAST_CHECKED_KEY);
-  if (!options.force && !shouldCheckForUpdate(lastCheckedAt, Date.now(), GRAMMAR_UPDATE_INTERVAL_MS)) {
-    return { kind: 'throttled' };
-  }
+	const lastCheckedAt = context.globalState.get<number>(LAST_CHECKED_KEY);
+	if (
+		!options.force &&
+		!shouldCheckForUpdate(lastCheckedAt, Date.now(), GRAMMAR_UPDATE_INTERVAL_MS)
+	) {
+		return { kind: "throttled" };
+	}
 
-  const url = config.get<string>('toml.grammarUpdate.url', '').trim();
-  if (url.length === 0) return { kind: 'failed', reason: 'the update URL is empty' };
+	const url = config.get<string>("toml.grammarUpdate.url", "").trim();
+	if (url.length === 0) return { kind: "failed", reason: "the update URL is empty" };
 
-  // 无论成功失败都记一次时间戳: 否则上游持续不可达时每次激活都会重试。
-  await context.globalState.update(LAST_CHECKED_KEY, Date.now());
+	// 无论成功失败都记一次时间戳: 否则上游持续不可达时每次激活都会重试。
+	await context.globalState.update(LAST_CHECKED_KEY, Date.now());
 
-  const target = grammarUri(context);
-  const temporary = target.with({ path: `${target.path}.tmp` });
+	const target = grammarUri(context);
+	const temporary = target.with({ path: `${target.path}.tmp` });
 
-  try {
-    const headers: Record<string, string> = { accept: 'application/json, text/plain' };
-    if (context.globalState.get(LEGACY_ETAG_KEY) !== undefined) {
-      await context.globalState.update(LEGACY_ETAG_KEY, undefined);
-    }
-    const onDisk = await readIfExists(target);
-    const etag = etagForRequest(
-      context.globalState.get<unknown>(ETAG_RECORD_KEY),
-      onDisk ? grammarDigest(onDisk) : undefined,
-    );
-    // 手动触发时不带 If-None-Match: 用户点了"检查更新"就应该真的去取一次完整内容,
-    // 否则本地文件被改坏后 304 会让人无从修复。
-    if (etag && !options.force) headers['if-none-match'] = etag;
+	try {
+		const headers: Record<string, string> = { accept: "application/json, text/plain" };
+		if (context.globalState.get(LEGACY_ETAG_KEY) !== undefined) {
+			await context.globalState.update(LEGACY_ETAG_KEY, undefined);
+		}
+		const onDisk = await readIfExists(target);
+		const etag = etagForRequest(
+			context.globalState.get<unknown>(ETAG_RECORD_KEY),
+			onDisk ? grammarDigest(onDisk) : undefined
+		);
+		// 手动触发时不带 If-None-Match: 用户点了"检查更新"就应该真的去取一次完整内容,
+		// 否则本地文件被改坏后 304 会让人无从修复。
+		if (etag && !options.force) headers["if-none-match"] = etag;
 
-    const response = await fetch(url, { headers, signal: AbortSignal.timeout(20_000) });
+		const response = await fetch(url, { headers, signal: AbortSignal.timeout(20_000) });
 
-    if (response.status === 304) {
-      output.debug('TOML grammar is up to date (304).');
-      return { kind: 'unchanged' };
-    }
-    if (!response.ok) {
-      const reason = `HTTP ${response.status}`;
-      output.warn(`TOML grammar update failed: ${reason}`);
-      return { kind: 'failed', reason };
-    }
+		if (response.status === 304) {
+			output.debug("TOML grammar is up to date (304).");
+			return { kind: "unchanged" };
+		}
+		if (!response.ok) {
+			const reason = `HTTP ${response.status}`;
+			output.warn(`TOML grammar update failed: ${reason}`);
+			return { kind: "failed", reason };
+		}
 
-    const text = await response.text();
-    if (!isValidTomlGrammar(text)) {
-      const reason = 'the downloaded content is not a valid TOML TextMate grammar';
-      output.warn(`TOML grammar update rejected: ${reason}`);
-      return { kind: 'failed', reason };
-    }
+		const text = await response.text();
+		if (!isValidTomlGrammar(text)) {
+			const reason = "the downloaded content is not a valid TOML TextMate grammar";
+			output.warn(`TOML grammar update rejected: ${reason}`);
+			return { kind: "failed", reason };
+		}
 
-    const next = Buffer.from(text, 'utf8');
-    if (onDisk && onDisk.equals(next)) {
-      await rememberEtag(context, response, next);
-      output.debug('TOML grammar is byte-identical to the bundled one.');
-      return { kind: 'unchanged' };
-    }
+		const next = Buffer.from(text, "utf8");
+		if (onDisk && onDisk.equals(next)) {
+			await rememberEtag(context, response, next);
+			output.debug("TOML grammar is byte-identical to the bundled one.");
+			return { kind: "unchanged" };
+		}
 
-    await vscode.workspace.fs.writeFile(temporary, next);
-    await vscode.workspace.fs.rename(temporary, target, { overwrite: true });
-    await rememberEtag(context, response, next);
+		await vscode.workspace.fs.writeFile(temporary, next);
+		await vscode.workspace.fs.rename(temporary, target, { overwrite: true });
+		await rememberEtag(context, response, next);
 
-    output.info('TOML grammar updated; reload the window to apply it.');
-    return { kind: 'updated' };
-  } catch (error) {
-    await safeDelete(temporary);
-    const reason = error instanceof Error ? error.message : String(error);
-    output.warn(`TOML grammar update failed: ${reason}`);
-    return { kind: 'failed', reason };
-  }
+		output.info("TOML grammar updated; reload the window to apply it.");
+		return { kind: "updated" };
+	} catch (error) {
+		await safeDelete(temporary);
+		const reason = error instanceof Error ? error.message : String(error);
+		output.warn(`TOML grammar update failed: ${reason}`);
+		return { kind: "failed", reason };
+	}
 }
 
 async function rememberEtag(
-  context: vscode.ExtensionContext,
-  response: Response,
-  written: Uint8Array,
+	context: vscode.ExtensionContext,
+	response: Response,
+	written: Uint8Array
 ): Promise<void> {
-  const etag = response.headers.get('etag');
-  const record: EtagRecord | undefined = etag ? { etag, sha256: grammarDigest(written) } : undefined;
-  await context.globalState.update(ETAG_RECORD_KEY, record);
+	const etag = response.headers.get("etag");
+	const record: EtagRecord | undefined = etag
+		? { etag, sha256: grammarDigest(written) }
+		: undefined;
+	await context.globalState.update(ETAG_RECORD_KEY, record);
 }
 
 async function readIfExists(uri: vscode.Uri): Promise<Buffer | undefined> {
-  try {
-    return Buffer.from(await vscode.workspace.fs.readFile(uri));
-  } catch {
-    return undefined;
-  }
+	try {
+		return Buffer.from(await vscode.workspace.fs.readFile(uri));
+	} catch {
+		return undefined;
+	}
 }
 
 async function safeDelete(uri: vscode.Uri): Promise<void> {
-  try {
-    await vscode.workspace.fs.delete(uri);
-  } catch {
-    // 临时文件本来就可能不存在, 清理失败不值得让整个流程失败。
-  }
+	try {
+		await vscode.workspace.fs.delete(uri);
+	} catch {
+		// 临时文件本来就可能不存在, 清理失败不值得让整个流程失败。
+	}
 }

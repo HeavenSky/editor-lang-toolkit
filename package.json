@@ -1,363 +1,368 @@
 {
-  "name": "editor-lang-toolkit",
-  "displayName": "Editor Lang Toolkit",
-  "description": "%extension.description%",
-  "version": "0.0.4",
-  "publisher": "HeavenSky",
-  "author": {
-    "name": "calla",
-    "email": "aurora.calla@outlook.com"
-  },
-  "license": "MIT",
-  "icon": "media/icon.png",
-  "l10n": "./l10n",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/HeavenSky/editor-lang-toolkit"
-  },
-  "homepage": "https://github.com/HeavenSky/editor-lang-toolkit",
-  "bugs": {
-    "url": "https://github.com/HeavenSky/editor-lang-toolkit/issues"
-  },
-  "engines": {
-    "vscode": "^1.101.0",
-    "node": ">=22.15.1"
-  },
-  "categories": [
-    "Programming Languages",
-    "Linters",
-    "Formatters",
-    "Debuggers"
-  ],
-  "keywords": [
-    "yaml",
-    "toml",
-    "ansi",
-    "language server",
-    "json schema",
-    "taplo",
-    "python",
-    "debug",
-    "uv",
-    "debugpy"
-  ],
-  "files": [
-    "out/extension.js",
-    "out/taplo.wasm",
-    "l10n",
-    "syntaxes/toml.tmLanguage.json",
-    "language-configuration-toml.json",
-    "media/icon.png",
-    "package.nls.json",
-    "package.nls.zh-cn.json",
-    "LICENSE.txt",
-    "NOTICE.md",
-    "CHANGELOG.md"
-  ],
-  "main": "./out/extension.js",
-  "activationEvents": [
-    "onLanguage:yaml",
-    "onLanguage:toml",
-    "onLanguage:ansi",
-    "onDebugResolve:uvpy",
-    "onDebugInitialConfigurations",
-    "onDebugDynamicConfigurations:uvpy"
-  ],
-  "contributes": {
-    "breakpoints": [
-      {
-        "language": "python"
-      }
-    ],
-    "debuggers": [
-      {
-        "type": "uvpy",
-        "label": "%debug.python.label%",
-        "languages": [
-          "python"
-        ],
-        "configurationAttributes": {
-          "launch": {
-            "properties": {
-              "program": {
-                "type": "string",
-                "default": "${file}",
-                "description": "%debug.python.program%"
-              },
-              "module": {
-                "type": "string",
-                "description": "%debug.python.module%"
-              },
-              "args": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                },
-                "default": [],
-                "description": "%debug.python.args%"
-              },
-              "cwd": {
-                "type": "string",
-                "default": "${workspaceFolder}",
-                "description": "%debug.python.cwd%"
-              },
-              "env": {
-                "type": "object",
-                "default": {},
-                "description": "%debug.python.env%"
-              },
-              "uvArgs": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                },
-                "default": [],
-                "description": "%debug.python.uvArgs%"
-              },
-              "uvPath": {
-                "type": "string",
-                "description": "%debug.python.uvPath%"
-              },
-              "python": {
-                "type": "string",
-                "description": "%debug.python.python%"
-              },
-              "justMyCode": {
-                "type": "boolean",
-                "default": true,
-                "description": "%debug.python.justMyCode%"
-              },
-              "stopOnEntry": {
-                "type": "boolean",
-                "default": false,
-                "description": "%debug.python.stopOnEntry%"
-              },
-              "console": {
-                "enum": [
-                  "integratedTerminal",
-                  "internalConsole",
-                  "externalTerminal"
-                ],
-                "default": "integratedTerminal",
-                "description": "%debug.python.console%"
-              }
-            }
-          },
-          "attach": {
-            "properties": {
-              "connect": {
-                "type": "object",
-                "default": {
-                  "host": "127.0.0.1",
-                  "port": 5678
-                },
-                "description": "%debug.python.connect%"
-              },
-              "justMyCode": {
-                "type": "boolean",
-                "default": true,
-                "description": "%debug.python.justMyCode%"
-              }
-            }
-          }
-        },
-        "initialConfigurations": [
-          {
-            "name": "Python (uv): Current File",
-            "type": "uvpy",
-            "request": "launch",
-            "program": "${file}",
-            "console": "integratedTerminal"
-          }
-        ],
-        "configurationSnippets": [
-          {
-            "label": "%debug.python.snippet.file%",
-            "body": {
-              "name": "Python (uv): Current File",
-              "type": "uvpy",
-              "request": "launch",
-              "program": "^\"\\${file}\"",
-              "console": "integratedTerminal"
-            }
-          },
-          {
-            "label": "%debug.python.snippet.module%",
-            "body": {
-              "name": "Python (uv): Module",
-              "type": "uvpy",
-              "request": "launch",
-              "module": "${1:package}",
-              "console": "integratedTerminal"
-            }
-          },
-          {
-            "label": "%debug.python.snippet.attach%",
-            "body": {
-              "name": "Python (uv): Attach",
-              "type": "uvpy",
-              "request": "attach",
-              "connect": {
-                "host": "127.0.0.1",
-                "port": 5678
-              }
-            }
-          }
-        ]
-      }
-    ],
-    "languages": [
-      {
-        "id": "toml",
-        "aliases": [
-          "TOML"
-        ],
-        "extensions": [
-          ".toml"
-        ],
-        "filenames": [
-          "Cargo.lock",
-          "uv.lock"
-        ],
-        "configuration": "./language-configuration-toml.json"
-      },
-      {
-        "id": "ansi",
-        "aliases": [
-          "ANSI Text"
-        ],
-        "extensions": [
-          ".ans",
-          ".ansi"
-        ]
-      }
-    ],
-    "grammars": [
-      {
-        "language": "toml",
-        "scopeName": "source.toml",
-        "path": "./syntaxes/toml.tmLanguage.json"
-      }
-    ],
-    "commands": [
-      {
-        "command": "langToolkit.restartServers",
-        "title": "%command.restartServers%",
-        "category": "%category%"
-      },
-      {
-        "command": "langToolkit.updateTomlGrammar",
-        "title": "%command.updateTomlGrammar%",
-        "category": "%category%"
-      },
-      {
-        "command": "langToolkit.ansi.showPreview",
-        "title": "%command.ansiPreview%",
-        "category": "%category%"
-      },
-      {
-        "command": "langToolkit.ansi.showPreviewToSide",
-        "title": "%command.ansiPreviewToSide%",
-        "category": "%category%"
-      }
-    ],
-    "configuration": {
-      "title": "Editor Lang Toolkit",
-      "properties": {
-        "langToolkit.yaml.enabled": {
-          "type": "boolean",
-          "default": true,
-          "description": "%config.yamlEnabled%"
-        },
-        "langToolkit.toml.enabled": {
-          "type": "boolean",
-          "default": true,
-          "description": "%config.tomlEnabled%"
-        },
-        "langToolkit.toml.grammarUpdate.enabled": {
-          "type": "boolean",
-          "default": true,
-          "markdownDescription": "%config.tomlGrammarUpdateEnabled%"
-        },
-        "langToolkit.toml.grammarUpdate.url": {
-          "type": "string",
-          "default": "https://raw.githubusercontent.com/tamasfe/taplo/master/editors/vscode/toml.tmLanguage.json",
-          "markdownDescription": "%config.tomlGrammarUpdateUrl%"
-        },
-        "langToolkit.taplo": {
-          "type": "object",
-          "default": {},
-          "additionalProperties": true,
-          "markdownDescription": "%config.taplo%",
-          "defaultSnippets": [
-            {
-              "label": "%snippet.taplo.example%",
-              "description": "%snippet.taplo.exampleDetail%",
-              "body": {
-                "schema": {
-                  "enabled": true,
-                  "catalogs": [
-                    "https://www.schemastore.org/api/json/catalog.json"
-                  ]
-                },
-                "formatter": {
-                  "alignEntries": false,
-                  "indentTables": false
-                }
-              }
-            }
-          ]
-        }
-      }
-    },
-    "menus": {
-      "editor/title": [
-        {
-          "command": "langToolkit.ansi.showPreviewToSide",
-          "alt": "langToolkit.ansi.showPreview",
-          "when": "editorLangId == ansi",
-          "group": "navigation"
-        }
-      ],
-      "commandPalette": [
-        {
-          "command": "langToolkit.ansi.showPreview",
-          "when": "editorLangId == ansi"
-        },
-        {
-          "command": "langToolkit.ansi.showPreviewToSide",
-          "when": "editorLangId == ansi"
-        }
-      ]
-    }
-  },
-  "scripts": {
-    "prepare:vendor": "node scripts/prepare-vendor.mjs",
-    "compile": "npm run prepare:vendor && node build.mjs",
-    "build": "npm run prepare:vendor && node build.mjs --production",
-    "watch": "npm run prepare:vendor && node build.mjs --watch",
-    "typecheck": "npm run prepare:vendor && tsc --noEmit",
-    "test": "vitest run",
-    "check": "npm run prepare:vendor && node scripts/check.mjs",
-    "check:template": "node scripts/check-template.mjs",
-    "gen:icon": "node scripts/gen-icon.mjs",
-    "package": "node scripts/package.mjs",
-    "vscode:prepublish": "npm run build",
-    "shots": "node scripts/shoot.mjs --readme"
-  },
-  "dependencies": {
-    "@taplo/lsp": "^0.8.0",
-    "vscode-languageclient": "^10.1.0",
-    "yaml-language-server": "^1.24.0"
-  },
-  "devDependencies": {
-    "@types/node": "^26.6.5",
-    "@vscode/vsce": "^4.0.0",
-    "esbuild": "^0.28.2",
-    "playwright-core": "^1.64.0",
-    "sharp": "^0.35.5",
-    "typescript": "^7.0.2",
-    "vitest": "^5.0.3",
-    "vscode-types": "npm:@types/vscode@^1.140.0"
-  }
+	"name": "editor-lang-toolkit",
+	"displayName": "Editor Lang Toolkit",
+	"version": "0.0.4",
+	"description": "%extension.description%",
+	"categories": [
+		"Debuggers",
+		"Formatters",
+		"Linters",
+		"Programming Languages"
+	],
+	"keywords": [
+		"ansi",
+		"debug",
+		"debugpy",
+		"json schema",
+		"language server",
+		"python",
+		"taplo",
+		"toml",
+		"uv",
+		"yaml"
+	],
+	"homepage": "https://github.com/HeavenSky/editor-lang-toolkit",
+	"bugs": {
+		"url": "https://github.com/HeavenSky/editor-lang-toolkit/issues"
+	},
+	"license": "MIT",
+	"author": {
+		"name": "calla",
+		"email": "aurora.calla@outlook.com"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/HeavenSky/editor-lang-toolkit"
+	},
+	"publisher": "HeavenSky",
+	"files": [
+		"out/extension.js",
+		"out/taplo.wasm",
+		"l10n",
+		"syntaxes/toml.tmLanguage.json",
+		"language-configuration-toml.json",
+		"media/icon.png",
+		"package.nls.json",
+		"package.nls.zh-cn.json",
+		"LICENSE.txt",
+		"NOTICE.md",
+		"CHANGELOG.md"
+	],
+	"main": "./out/extension.js",
+	"scripts": {
+		"prepare:vendor": "node scripts/prepare-vendor.mjs",
+		"compile": "npm run prepare:vendor && node build.mjs",
+		"build": "npm run prepare:vendor && node build.mjs --production",
+		"watch": "npm run prepare:vendor && node build.mjs --watch",
+		"typecheck": "npm run prepare:vendor && tsc --noEmit",
+		"test": "vitest run",
+		"lint": "oxlint --fix",
+		"lint:check": "oxlint --deny-warnings",
+		"fmt": "oxfmt --write",
+		"fmt:check": "oxfmt --check",
+		"check": "npm run prepare:vendor && node scripts/check.mjs",
+		"gen:icon": "node scripts/gen-icon.mjs",
+		"package": "node scripts/package.mjs",
+		"vscode:prepublish": "npm run build",
+		"shots": "node scripts/shoot.mjs --readme"
+	},
+	"dependencies": {
+		"@taplo/lsp": "^0.8.0",
+		"vscode-languageclient": "^10.1.0",
+		"yaml-language-server": "^1.24.0"
+	},
+	"devDependencies": {
+		"@types/node": "^26.6.5",
+		"@vscode/vsce": "^4.0.0",
+		"esbuild": "^0.28.2",
+		"oxfmt": "^0.74.0",
+		"oxlint": "^1.89.0",
+		"playwright-core": "^1.64.0",
+		"sharp": "^0.35.5",
+		"typescript": "^7.0.2",
+		"vitest": "^5.0.3",
+		"vscode-types": "npm:@types/vscode@^1.140.0"
+	},
+	"l10n": "./l10n",
+	"contributes": {
+		"breakpoints": [
+			{
+				"language": "python"
+			}
+		],
+		"debuggers": [
+			{
+				"type": "uvpy",
+				"label": "%debug.python.label%",
+				"languages": [
+					"python"
+				],
+				"configurationAttributes": {
+					"launch": {
+						"properties": {
+							"program": {
+								"type": "string",
+								"default": "${file}",
+								"description": "%debug.python.program%"
+							},
+							"module": {
+								"type": "string",
+								"description": "%debug.python.module%"
+							},
+							"args": {
+								"type": "array",
+								"items": {
+									"type": "string"
+								},
+								"default": [],
+								"description": "%debug.python.args%"
+							},
+							"cwd": {
+								"type": "string",
+								"default": "${workspaceFolder}",
+								"description": "%debug.python.cwd%"
+							},
+							"env": {
+								"type": "object",
+								"default": {},
+								"description": "%debug.python.env%"
+							},
+							"uvArgs": {
+								"type": "array",
+								"items": {
+									"type": "string"
+								},
+								"default": [],
+								"description": "%debug.python.uvArgs%"
+							},
+							"uvPath": {
+								"type": "string",
+								"description": "%debug.python.uvPath%"
+							},
+							"python": {
+								"type": "string",
+								"description": "%debug.python.python%"
+							},
+							"justMyCode": {
+								"type": "boolean",
+								"default": true,
+								"description": "%debug.python.justMyCode%"
+							},
+							"stopOnEntry": {
+								"type": "boolean",
+								"default": false,
+								"description": "%debug.python.stopOnEntry%"
+							},
+							"console": {
+								"enum": [
+									"integratedTerminal",
+									"internalConsole",
+									"externalTerminal"
+								],
+								"default": "integratedTerminal",
+								"description": "%debug.python.console%"
+							}
+						}
+					},
+					"attach": {
+						"properties": {
+							"connect": {
+								"type": "object",
+								"default": {
+									"host": "127.0.0.1",
+									"port": 5678
+								},
+								"description": "%debug.python.connect%"
+							},
+							"justMyCode": {
+								"type": "boolean",
+								"default": true,
+								"description": "%debug.python.justMyCode%"
+							}
+						}
+					}
+				},
+				"initialConfigurations": [
+					{
+						"name": "Python (uv): Current File",
+						"type": "uvpy",
+						"request": "launch",
+						"program": "${file}",
+						"console": "integratedTerminal"
+					}
+				],
+				"configurationSnippets": [
+					{
+						"label": "%debug.python.snippet.file%",
+						"body": {
+							"name": "Python (uv): Current File",
+							"type": "uvpy",
+							"request": "launch",
+							"program": "^\"\\${file}\"",
+							"console": "integratedTerminal"
+						}
+					},
+					{
+						"label": "%debug.python.snippet.module%",
+						"body": {
+							"name": "Python (uv): Module",
+							"type": "uvpy",
+							"request": "launch",
+							"module": "${1:package}",
+							"console": "integratedTerminal"
+						}
+					},
+					{
+						"label": "%debug.python.snippet.attach%",
+						"body": {
+							"name": "Python (uv): Attach",
+							"type": "uvpy",
+							"request": "attach",
+							"connect": {
+								"host": "127.0.0.1",
+								"port": 5678
+							}
+						}
+					}
+				]
+			}
+		],
+		"languages": [
+			{
+				"id": "toml",
+				"aliases": [
+					"TOML"
+				],
+				"extensions": [
+					".toml"
+				],
+				"filenames": [
+					"Cargo.lock",
+					"uv.lock"
+				],
+				"configuration": "./language-configuration-toml.json"
+			},
+			{
+				"id": "ansi",
+				"aliases": [
+					"ANSI Text"
+				],
+				"extensions": [
+					".ans",
+					".ansi"
+				]
+			}
+		],
+		"grammars": [
+			{
+				"language": "toml",
+				"scopeName": "source.toml",
+				"path": "./syntaxes/toml.tmLanguage.json"
+			}
+		],
+		"commands": [
+			{
+				"command": "langToolkit.restartServers",
+				"title": "%command.restartServers%",
+				"category": "%category%"
+			},
+			{
+				"command": "langToolkit.updateTomlGrammar",
+				"title": "%command.updateTomlGrammar%",
+				"category": "%category%"
+			},
+			{
+				"command": "langToolkit.ansi.showPreview",
+				"title": "%command.ansiPreview%",
+				"category": "%category%"
+			},
+			{
+				"command": "langToolkit.ansi.showPreviewToSide",
+				"title": "%command.ansiPreviewToSide%",
+				"category": "%category%"
+			}
+		],
+		"configuration": {
+			"title": "Editor Lang Toolkit",
+			"properties": {
+				"langToolkit.yaml.enabled": {
+					"type": "boolean",
+					"default": true,
+					"description": "%config.yamlEnabled%"
+				},
+				"langToolkit.toml.enabled": {
+					"type": "boolean",
+					"default": true,
+					"description": "%config.tomlEnabled%"
+				},
+				"langToolkit.toml.grammarUpdate.enabled": {
+					"type": "boolean",
+					"default": true,
+					"markdownDescription": "%config.tomlGrammarUpdateEnabled%"
+				},
+				"langToolkit.toml.grammarUpdate.url": {
+					"type": "string",
+					"default": "https://raw.githubusercontent.com/tamasfe/taplo/master/editors/vscode/toml.tmLanguage.json",
+					"markdownDescription": "%config.tomlGrammarUpdateUrl%"
+				},
+				"langToolkit.taplo": {
+					"type": "object",
+					"default": {},
+					"additionalProperties": true,
+					"markdownDescription": "%config.taplo%",
+					"defaultSnippets": [
+						{
+							"label": "%snippet.taplo.example%",
+							"description": "%snippet.taplo.exampleDetail%",
+							"body": {
+								"schema": {
+									"enabled": true,
+									"catalogs": [
+										"https://www.schemastore.org/api/json/catalog.json"
+									]
+								},
+								"formatter": {
+									"alignEntries": false,
+									"indentTables": false
+								}
+							}
+						}
+					]
+				}
+			}
+		},
+		"menus": {
+			"editor/title": [
+				{
+					"command": "langToolkit.ansi.showPreviewToSide",
+					"alt": "langToolkit.ansi.showPreview",
+					"when": "editorLangId == ansi",
+					"group": "navigation"
+				}
+			],
+			"commandPalette": [
+				{
+					"command": "langToolkit.ansi.showPreview",
+					"when": "editorLangId == ansi"
+				},
+				{
+					"command": "langToolkit.ansi.showPreviewToSide",
+					"when": "editorLangId == ansi"
+				}
+			]
+		}
+	},
+	"activationEvents": [
+		"onDebugDynamicConfigurations:uvpy",
+		"onDebugInitialConfigurations",
+		"onDebugResolve:uvpy",
+		"onLanguage:ansi",
+		"onLanguage:toml",
+		"onLanguage:yaml"
+	],
+	"icon": "media/icon.png",
+	"engines": {
+		"node": ">=22.15.1",
+		"vscode": "^1.101.0"
+	}
 }

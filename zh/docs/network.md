@@ -6,11 +6,11 @@
 
 ## 会访问网络的请求
 
-| 请求 | 时机 | 避免方法 |
-| --- | --- | --- |
-| 文件引用的 JSON Schema 与 SchemaStore 目录 | 编辑用到它们的 YAML 或 TOML 文件时 | 改用本地 schema 路径。关闭目录：YAML 设 `yaml.schemaStore.enable: false`，TOML 设 `"langToolkit.taplo": { "schema": { "catalogs": [] } }`；或用 `langToolkit.yaml.enabled` / `langToolkit.toml.enabled` 关闭服务器 |
-| 上游的 TOML TextMate 语法 | 后台检查，每周至多一次 | 把 `langToolkit.toml.grammarUpdate.enabled` 设为 `false` |
-| uv 从 PyPI 拉取的 `debugpy` | 第一次调试 Python 时，之后由 uv 缓存 | 不启动 Python 调试，或在联网时运行一次 `uv run --with debugpy python -c "import debugpy"`，让 uv 缓存下来 |
+| 请求                                       | 时机                                 | 避免方法                                                                                                                                                                                                           |
+| ------------------------------------------ | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 文件引用的 JSON Schema 与 SchemaStore 目录 | 编辑用到它们的 YAML 或 TOML 文件时   | 改用本地 schema 路径。关闭目录：YAML 设 `yaml.schemaStore.enable: false`，TOML 设 `"langToolkit.taplo": { "schema": { "catalogs": [] } }`；或用 `langToolkit.yaml.enabled` / `langToolkit.toml.enabled` 关闭服务器 |
+| 上游的 TOML TextMate 语法                  | 后台检查，每周至多一次               | 把 `langToolkit.toml.grammarUpdate.enabled` 设为 `false`                                                                                                                                                           |
+| uv 从 PyPI 拉取的 `debugpy`                | 第一次调试 Python 时，之后由 uv 缓存 | 不启动 Python 调试，或在联网时运行一次 `uv run --with debugpy python -c "import debugpy"`，让 uv 缓存下来                                                                                                          |
 
 ## 语法下载如何校验
 

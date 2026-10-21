@@ -12,7 +12,7 @@
 
 **按 F5 时询问用哪个调试器。**
 原因：同时装了微软的 Python Debugger，两者都声明支持 Python。
-解决：选 *Python (uv)*，或保存一份 `"type": "uvpy"` 的 `launch.json` 配置，之后 F5 不再询问。
+解决：选 _Python (uv)_，或保存一份 `"type": "uvpy"` 的 `launch.json` 配置，之后 F5 不再询问。
 
 **项目里明明有的包报 `ModuleNotFoundError`。**
 原因：工作目录不在 uv 项目内，`uv run` 解析到了别的环境。工作区文件夹在项目上层时（例如 monorepo）会这样。

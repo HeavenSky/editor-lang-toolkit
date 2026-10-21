@@ -7,32 +7,32 @@
  * 只保留最后一次调用的参数: 中间那些状态已经被后来的输入取代, 算了也是白算。
  */
 export interface Debounced<A extends unknown[]> {
-  (...args: A): void;
-  /** 取消尚未触发的那一次调用。 */
-  cancel(): void;
+	(...args: A): void;
+	/** 取消尚未触发的那一次调用。 */
+	cancel(): void;
 }
 
 export function debounce<A extends unknown[]>(
-  fn: (...args: A) => void,
-  delayMs: number,
-  schedule: (callback: () => void, ms: number) => unknown = setTimeout,
-  unschedule: (handle: unknown) => void = (handle) => clearTimeout(handle as never),
+	fn: (...args: A) => void,
+	delayMs: number,
+	schedule: (callback: () => void, ms: number) => unknown = setTimeout,
+	unschedule: (handle: unknown) => void = handle => clearTimeout(handle as never)
 ): Debounced<A> {
-  let handle: unknown;
+	let handle: unknown;
 
-  const debounced = (...args: A): void => {
-    if (handle !== undefined) unschedule(handle);
-    handle = schedule(() => {
-      handle = undefined;
-      fn(...args);
-    }, delayMs);
-  };
+	const debounced = (...args: A): void => {
+		if (handle !== undefined) unschedule(handle);
+		handle = schedule(() => {
+			handle = undefined;
+			fn(...args);
+		}, delayMs);
+	};
 
-  debounced.cancel = (): void => {
-    if (handle === undefined) return;
-    unschedule(handle);
-    handle = undefined;
-  };
+	debounced.cancel = (): void => {
+		if (handle === undefined) return;
+		unschedule(handle);
+		handle = undefined;
+	};
 
-  return debounced;
+	return debounced;
 }

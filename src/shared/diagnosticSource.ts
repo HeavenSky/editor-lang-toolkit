@@ -8,13 +8,13 @@
  *
  * 只替换精确等于上游名字的来源, 其余原样保留, 以免日后 taplo 换了命名时误伤。
  */
-export const TAPLO_UPSTREAM_SOURCE = 'Even Better TOML';
-export const TOML_SOURCE = 'TOML';
+export const TAPLO_UPSTREAM_SOURCE = "Even Better TOML";
+export const TOML_SOURCE = "TOML";
 
 /** 就地改写并返回同一数组, 方便直接交给中间件的 `next`。 */
 export function rewriteTaploSource<T extends { source?: string }>(diagnostics: T[]): T[] {
-  for (const diagnostic of diagnostics) {
-    if (diagnostic.source === TAPLO_UPSTREAM_SOURCE) diagnostic.source = TOML_SOURCE;
-  }
-  return diagnostics;
+	for (const diagnostic of diagnostics) {
+		if (diagnostic.source === TAPLO_UPSTREAM_SOURCE) diagnostic.source = TOML_SOURCE;
+	}
+	return diagnostics;
 }

@@ -25,11 +25,7 @@ YAML 文件按以下顺序匹配 schema，先匹配到的生效：
 YAML 服务器是 [yaml-language-server](https://github.com/redhat-developer/yaml-language-server)，直接读取标准的 `yaml.*` 设置，已有的 `yaml.schemas` 或 `yaml.schemaStore.*` 配置原样可用：
 
 ```jsonc
-{
-  "yaml.schemas": {
-    "./schemas/service.schema.json": "deploy/*.yaml"
-  }
-}
+{ "yaml.schemas": { "./schemas/service.schema.json": "deploy/*.yaml" } }
 ```
 
 校验支持 JSON Schema draft 04、07、2019-09 与 2020-12，包括 Kubernetes CRD schema。此外还会报告未使用的锚点，并可约束 flow 风格（`yaml.style.flowMapping`、`yaml.style.flowSequence`）与映射键顺序（`yaml.keyOrdering`）。
@@ -46,16 +42,13 @@ TOML 服务器是 [Taplo](https://github.com/tamasfe/taplo) 的 WebAssembly 构�
 
 ```jsonc
 {
-  "langToolkit.taplo": {
-    "schema": {
-      "enabled": true,
-      "catalogs": ["https://www.schemastore.org/api/json/catalog.json"]
-    },
-    "formatter": {
-      "alignEntries": false,
-      "indentTables": false
-    }
-  }
+	"langToolkit.taplo": {
+		"schema": {
+			"enabled": true,
+			"catalogs": ["https://www.schemastore.org/api/json/catalog.json"],
+		},
+		"formatter": { "alignEntries": false, "indentTables": false },
+	},
 }
 ```
 

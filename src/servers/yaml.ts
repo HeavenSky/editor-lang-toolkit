@@ -10,5 +10,5 @@
  * 不会碰它, 也就不会白白付出 1.3 MB 代码的解析与执行成本。
  */
 export async function run(): Promise<void> {
-  await import('yaml-language-server/out/server/src/server.js');
+	await import("yaml-language-server/out/server/src/server.js");
 }

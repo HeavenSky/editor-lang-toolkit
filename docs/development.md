@@ -6,12 +6,14 @@ This page shows how to check, test and package the extension from a clone; you n
 
 ## Build and test
 
-Run these five commands in order to go from a clean clone to a tested VSIX in `artifacts/`. The last one, `npm run package`, also asserts what goes into the package.
+Run these seven commands in order to go from a clean clone to a tested VSIX in `artifacts/`. The last one, `npm run package`, also asserts what goes into the package.
 
 ```bash
 npm ci
-npm run check       # icon, manifest, l10n and template drift gates
+npm run check       # icon, manifest and l10n gates
 npm run typecheck
+npm run lint:check  # oxlint; `npm run lint` also applies fixes
+npm run fmt:check   # oxfmt; `npm run fmt` formats in place
 npm test
 npm run package     # build artifacts/<name>-<version>.vsix and assert its contents
 ```

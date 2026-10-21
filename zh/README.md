@@ -18,16 +18,16 @@ VS Code 给 JSON 内置了完整的语言服务，YAML 却只有语法高亮，T
 
 1. 安装扩展：
 
-   ```bash
-   code --install-extension HeavenSky.editor-lang-toolkit
-   ```
+    ```bash
+    code --install-extension HeavenSky.editor-lang-toolkit
+    ```
 
 2. 打开 GitHub workflow 这类常见的 YAML 文件，写错的地方立刻标出波浪线。
 3. 其他 YAML 文件在第一行指定 schema，再按 `Ctrl+Space` 就能看到补全：
 
-   ```yaml
-   # yaml-language-server: $schema=./service.schema.json
-   ```
+    ```yaml
+    # yaml-language-server: $schema=./service.schema.json
+    ```
 
 ## 边写边发现配置错误
 

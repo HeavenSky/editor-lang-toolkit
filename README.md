@@ -16,16 +16,16 @@ VS Code ships a full language service for JSON, but only a syntax grammar for YA
 
 1. Install the extension:
 
-   ```bash
-   code --install-extension HeavenSky.editor-lang-toolkit
-   ```
+    ```bash
+    code --install-extension HeavenSky.editor-lang-toolkit
+    ```
 
 2. Open a well-known YAML file, such as a GitHub workflow: mistakes are underlined right away.
 3. For any other YAML file, add a schema on the first line, then press `Ctrl+Space` for completions:
 
-   ```yaml
-   # yaml-language-server: $schema=./service.schema.json
-   ```
+    ```yaml
+    # yaml-language-server: $schema=./service.schema.json
+    ```
 
 ## Catch config mistakes as you type
 

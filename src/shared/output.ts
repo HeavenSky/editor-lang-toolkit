@@ -1,4 +1,4 @@
-import * as vscode from 'vscode';
+import * as vscode from "vscode";
 
 let channel: vscode.LogOutputChannel | undefined;
 
@@ -9,8 +9,8 @@ let channel: vscode.LogOutputChannel | undefined;
  * 默认不显示 —— 后台语法更新这类"成功了也不该打扰人"的日志可以放心写进去。
  */
 export function getOutput(): vscode.LogOutputChannel {
-  if (!channel) {
-    channel = vscode.window.createOutputChannel('Editor Lang Toolkit', { log: true });
-  }
-  return channel;
+	if (!channel) {
+		channel = vscode.window.createOutputChannel("Editor Lang Toolkit", { log: true });
+	}
+	return channel;
 }

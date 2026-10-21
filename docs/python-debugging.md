@@ -12,15 +12,15 @@ The debugger starts as `uv run --with debugpy python -m debugpy.adapter` in the 
 
 ## Save a launch configuration
 
-Add a configuration from **Run → Add Configuration…**, which offers three *Python (uv)* templates: *Current File*, *Module* (`python -m`) and *Attach to debugpy*. A minimal launch configuration:
+Add a configuration from **Run → Add Configuration…**, which offers three _Python (uv)_ templates: _Current File_, _Module_ (`python -m`) and _Attach to debugpy_. A minimal launch configuration:
 
 ```jsonc
 {
-  "name": "Python (uv): Current File",
-  "type": "uvpy",
-  "request": "launch",
-  "program": "${file}",
-  "console": "integratedTerminal"
+	"name": "Python (uv): Current File",
+	"type": "uvpy",
+	"request": "launch",
+	"program": "${file}",
+	"console": "integratedTerminal",
 }
 ```
 
@@ -36,7 +36,7 @@ The full attribute list appears in IntelliSense while you edit `launch.json`. Th
 
 ## Attach to a running program
 
-Start your program with debugpy listening, then run the *Python (uv): Attach* configuration that the *Attach to debugpy* template adds:
+Start your program with debugpy listening, then run the _Python (uv): Attach_ configuration that the _Attach to debugpy_ template adds:
 
 ```bash
 uv run --with debugpy python -m debugpy --listen 5678 --wait-for-client main.py
@@ -44,10 +44,10 @@ uv run --with debugpy python -m debugpy --listen 5678 --wait-for-client main.py
 
 ```jsonc
 {
-  "name": "Python (uv): Attach",
-  "type": "uvpy",
-  "request": "attach",
-  "connect": { "host": "127.0.0.1", "port": 5678 }
+	"name": "Python (uv): Attach",
+	"type": "uvpy",
+	"request": "attach",
+	"connect": { "host": "127.0.0.1", "port": 5678 },
 }
 ```
 
