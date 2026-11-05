@@ -99,6 +99,9 @@ export interface ParserOptions {
 	doubleUnderline?: boolean;
 }
 
+/** xterm 256 色色立方每个通道的六档取值 (索引 0~5), 与终端实际调色板一致而非 0~255 等分。 */
+const CUBE_STEPS = [0, 95, 135, 175, 215, 255] as const;
+
 export class Parser {
 	public constructor(public options: ParserOptions = { doubleUnderline: false }) {}
 
@@ -484,24 +487,18 @@ export class Parser {
 			return ColorFlags.Named | ColorFlags.Bright | (color - 8);
 		}
 
+		// xterm 灰阶段: 从 #080808 起每档 +10, 而不是 0~255 等间距 —— 等间距换算在两端
+		// 与 xterm 实际值差出十几个灰度级, 终端里看起来就是两种颜色。
 		if (232 <= color && color <= 255) {
-			const intensity = ((255 * (color - 232)) / 23) | 0;
+			const intensity = 8 + 10 * (color - 232);
 			return (intensity << 16) | (intensity << 8) | intensity;
 		}
 
-		let color6 = color - 16;
-
-		const b6 = color6 % 6;
-		color6 = (color6 / 6) | 0;
-
-		const g6 = color6 % 6;
-		color6 = (color6 / 6) | 0;
-
-		const r6 = color6;
-
-		const r = ((255 * r6) / 5) | 0;
-		const g = ((255 * g6) / 5) | 0;
-		const b = ((255 * b6) / 5) | 0;
+		// xterm 色立方: 每个通道不是 0~255 等分五档, 而是这组非均匀取值 (0 加进去共六档)。
+		const color6 = color - 16;
+		const r = CUBE_STEPS[(color6 / 36) | 0];
+		const g = CUBE_STEPS[((color6 % 36) / 6) | 0];
+		const b = CUBE_STEPS[color6 % 6];
 
 		return (r << 16) | (g << 8) | b;
 	}

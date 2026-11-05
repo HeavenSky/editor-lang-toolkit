@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 
 import * as ansi from "../shared/ansi";
-import { debounce } from "../shared/debounce";
+import { debounce, type Debounced } from "../shared/debounce";
 import { LruCache } from "../shared/lru";
 import { getOutput } from "../shared/output";
 import { buildTextDecoration } from "../shared/textDecoration";
@@ -29,6 +29,9 @@ const DECORATION_TYPE_LIMIT = 512;
 
 /** 连续输入时的重解析间隔。 */
 const REDRAW_DEBOUNCE_MS = 300;
+
+/** 连续源变更时预览内容重建的合并间隔; 与重解析同值, 两者都在同一次停顿后落定。 */
+const PREVIEW_UPDATE_DEBOUNCE_MS = 300;
 
 /** 预览文档的 uri scheme。 */
 const PREVIEW_SCHEME = "langToolkit.ansi";
@@ -247,6 +250,9 @@ class AnsiPreviewProvider implements vscode.TextDocumentContentProvider {
 
 	private readonly _watched = new Set<string>();
 
+	/** 每个已预览的源文档一个去抖器: 连续追加日志时内容提供者只重建最后一次, 多个预览互不吞并。 */
+	private readonly _notifyLater = new Map<string, Debounced<[vscode.Uri]>>();
+
 	public static toPreviewUri(source: vscode.Uri): vscode.Uri {
 		const name = source.path.split("/").pop() ?? "preview";
 		return vscode.Uri.parse(
@@ -260,9 +266,17 @@ class AnsiPreviewProvider implements vscode.TextDocumentContentProvider {
 	}
 
 	public notifySourceChanged(source: vscode.Uri): void {
-		if (this._watched.has(source.toString())) {
-			this._onDidChange.fire(AnsiPreviewProvider.toPreviewUri(source));
+		const key = source.toString();
+		if (!this._watched.has(key)) return;
+		let notify = this._notifyLater.get(key);
+		if (!notify) {
+			notify = debounce(
+				uri => this._onDidChange.fire(AnsiPreviewProvider.toPreviewUri(uri)),
+				PREVIEW_UPDATE_DEBOUNCE_MS
+			);
+			this._notifyLater.set(key, notify);
 		}
+		notify(source);
 	}
 
 	public async provideTextDocumentContent(uri: vscode.Uri): Promise<string> {
@@ -286,6 +300,8 @@ class AnsiPreviewProvider implements vscode.TextDocumentContentProvider {
 	}
 
 	public dispose(): void {
+		for (const notify of this._notifyLater.values()) notify.cancel();
+		this._notifyLater.clear();
 		this._onDidChange.dispose();
 	}
 }
@@ -294,6 +310,16 @@ function isAnsiEditor(editor: vscode.TextEditor): boolean {
 	return (
 		editor.document.languageId === ANSI_LANGUAGE_ID ||
 		editor.document.uri.scheme === PREVIEW_SCHEME
+	);
+}
+
+/**
+ * 只有 ANSI 文档本身 (或预览文档) 的变化才需要重新解析: 日志没动时, 旁边打开的 TypeScript
+ * 等无关文档的每次编辑都不该触发对可见 ANSI 文档的全量重扫。
+ */
+function isAnsiDocument(document: vscode.TextDocument): boolean {
+	return (
+		document.languageId === ANSI_LANGUAGE_ID || document.uri.scheme === PREVIEW_SCHEME
 	);
 }
 
@@ -336,10 +362,13 @@ export function registerAnsi(context: vscode.ExtensionContext): void {
 	context.subscriptions.push(
 		vscode.window.onDidChangeVisibleTextEditors(redrawAll),
 		vscode.workspace.onDidChangeTextDocument(event => {
+			if (!isAnsiDocument(event.document)) return;
 			preview.notifySourceChanged(event.document.uri);
 			redrawSoon();
 		}),
-		vscode.workspace.onDidOpenTextDocument(redrawAll)
+		vscode.workspace.onDidOpenTextDocument(document => {
+			if (isAnsiDocument(document)) redrawAll();
+		})
 	);
 
 	const showPreview = async (column: vscode.ViewColumn): Promise<void> => {

@@ -147,6 +147,19 @@ describe("Parser: 扩展色", () => {
 		expect(bright[0]?.foregroundColor).toBe(NamedColor.BrightRed);
 	});
 
+	it("256 色按 xterm 调色板查表解析", () => {
+		const colorOf = (index: number): number => {
+			const spans = textSpans(new Parser().appendLine(`${ESC}[38;5;${index}mX`));
+			return spans[0]?.foregroundColor as number;
+		};
+		// 色立方首档内与跨档的取样: 17 是蓝色通道第一档, 86 横跨三个通道。
+		expect(colorOf(17)).toBe(0x00005f);
+		expect(colorOf(86)).toBe(0x5fffd7);
+		// 灰阶段两端: 等间距换算在这里分别偏成 #000033 与 #ffffff。
+		expect(colorOf(232)).toBe(0x080808);
+		expect(colorOf(255)).toBe(0xeeeeee);
+	});
+
 	it("256 色的灰阶段落解析成等值 RGB", () => {
 		const spans = textSpans(new Parser().appendLine(`${ESC}[38;5;232mgray`));
 		const color = spans[0]?.foregroundColor as number;
