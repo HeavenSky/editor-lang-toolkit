@@ -18,10 +18,7 @@ export const YAML_FORMAT_ENABLE_DEFAULT = true;
  * 补齐一个配置响应项: `section` 是 `yaml`, `yaml.format` 或 `yaml.format.enable` 且对应值
  * 未显式给出 `enable` 时, 注入默认值; 其余原样返回。
  */
-export function withYamlFormatDefault(
-	section: string | null | undefined,
-	value: unknown
-): unknown {
+export function withYamlFormatDefault(section: string | null | undefined, value: unknown): unknown {
 	if (section === "yaml") {
 		const yaml = asRecord(value);
 		const format = asRecord(yaml.format);

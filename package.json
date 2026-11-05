@@ -1,7 +1,7 @@
 {
 	"name": "editor-lang-toolkit",
 	"displayName": "Editor Lang Toolkit",
-	"version": "0.0.4",
+	"version": "0.0.5",
 	"description": "%extension.description%",
 	"categories": [
 		"Debuggers",

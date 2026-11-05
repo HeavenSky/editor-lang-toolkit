@@ -73,9 +73,7 @@ function createYamlClient(context: vscode.ExtensionContext): {
 	const watcher = vscode.workspace.createFileSystemWatcher("**/*.{yaml,yml,json}");
 	const clientOptions: LanguageClientOptions = {
 		documentSelector: [{ language: "yaml" }],
-		synchronize: {
-			fileEvents: watcher,
-		},
+		synchronize: { fileEvents: watcher },
 		initializationOptions: {
 			// 必须显式给出: 服务器在 initialize 里无条件加载语言包, 读不到就让整个 initialize 失败,
 			// 而它的默认路径是相对源码目录算的 (`__dirname/../../../l10n`), 打成 bundle 之后必然失效。
@@ -119,9 +117,7 @@ function createTomlClient(context: vscode.ExtensionContext): {
 	const watcher = vscode.workspace.createFileSystemWatcher("**/{*.toml,.taplo.toml}");
 	const clientOptions: LanguageClientOptions = {
 		documentSelector: [{ language: "toml" }],
-		synchronize: {
-			fileEvents: watcher,
-		},
+		synchronize: { fileEvents: watcher },
 		initializationOptions: {
 			configurationSection: "langToolkit.taplo",
 			cachePath: context.globalStorageUri.fsPath,
@@ -146,9 +142,10 @@ const FACTORIES: Record<
 	string,
 	{
 		setting: string;
-		create: (
-			context: vscode.ExtensionContext
-		) => { client: LanguageClient; watcher: vscode.FileSystemWatcher };
+		create: (context: vscode.ExtensionContext) => {
+			client: LanguageClient;
+			watcher: vscode.FileSystemWatcher;
+		};
 	}
 > = {
 	yaml: { setting: "yaml.enabled", create: createYamlClient },

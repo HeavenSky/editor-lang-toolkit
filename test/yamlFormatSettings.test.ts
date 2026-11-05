@@ -26,9 +26,9 @@ describe("yaml.format.enable 默认桥接", () => {
 		expect(withYamlFormatDefault("yaml", { format: { enable: false } })).toEqual({
 			format: { enable: false },
 		});
-		expect(withYamlFormatDefault("yaml", { format: { enable: true, singleQuote: true } })).toEqual({
-			format: { enable: true, singleQuote: true },
-		});
+		expect(
+			withYamlFormatDefault("yaml", { format: { enable: true, singleQuote: true } })
+		).toEqual({ format: { enable: true, singleQuote: true } });
 		expect(withYamlFormatDefault("yaml.format", { enable: false })).toEqual({ enable: false });
 		expect(withYamlFormatDefault("yaml.format.enable", false)).toBe(false);
 		expect(withYamlFormatDefault("yaml.format.enable", true)).toBe(true);

@@ -2,6 +2,15 @@
 
 **English** · [简体中文](./zh/CHANGELOG.md)
 
+## v0.0.5 2026-11-05 YAML formatting and ANSI preview fixes
+
+**Fixed**:
+
+- YAML: formatting is now enabled by default when this extension is installed on its own; an explicit `yaml.format.enable: false` still disables it.
+- YAML and TOML: restarting or disabling language servers during startup no longer leaves duplicate server instances running, and restarts release their file watchers.
+- ANSI: 256-colour output now uses the xterm colour cube and greyscale values, fixing colours that differed from the terminal.
+- ANSI: previews keep updating during continuous log output and after the source file changes language mode. Updates are combined into 300 ms windows for each source file; editing unrelated documents no longer reparses visible ANSI files.
+
 ## v0.0.4 2026-10-16 Rewritten docs
 
 **Changed**:

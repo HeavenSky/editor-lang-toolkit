@@ -18,9 +18,11 @@ This replaces the built-in `log` highlighting for those files, including its tim
 
 **Lang Toolkit: Open ANSI Preview to the Side** opens a copy of the file with the escape codes removed and the colours kept; the button in the editor title bar does the same, and Alt-click opens it in the current editor instead. The preview is a regular read-only editor rather than a webview, so search, selection, copy and side-by-side scrolling work as usual. It follows edits to the source file.
 
+Preview text updates are combined into 300 ms windows, so continuous log output keeps appearing without waiting for a pause. An open preview keeps following its source even if you change the source file's language mode.
+
 ## Supported colours and styles
 
-Colours map to your theme's `terminal.ansi*` palette, so they match the integrated terminal and change with your theme.
+The 16 basic colours map to your theme's `terminal.ansi*` palette and change with your theme. Extended 256 colours use the xterm colour cube and greyscale values; 24-bit colours use the RGB values in the file.
 
 - Colours: the 16 basic colours (8 normal and 8 bright), 256 colours (`38;5;n`) and 24-bit true colour (`38;2;r;g;b`), for text, background and underline (`58;5;n`, `58;2;r;g;b`, and the colon forms).
 - Styles: bold, faint, italic, underline, double underline (`21` and `4:2`), strikethrough, overline, inverse and conceal.
