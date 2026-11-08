@@ -2,6 +2,13 @@
 
 **English** · [简体中文](./zh/CHANGELOG.md)
 
+## v0.0.6 2026-11-08 Settings clarity and release checks
+
+**Changed**:
+
+- Settings: the `langToolkit.taplo` description now states that leaving it empty applies no overrides — the TOML language server then uses its own defaults. No behaviour change.
+- Packaging: `npm run check` now verifies that every configuration key declares a default, and that object, nested and snippet defaults stay consistent with the manifest.
+
 ## v0.0.5 2026-11-05 YAML formatting and ANSI preview fixes
 
 **Fixed**:
