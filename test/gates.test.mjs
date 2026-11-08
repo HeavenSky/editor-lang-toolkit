@@ -1,11 +1,17 @@
+import { mkdtempSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+
 import { describe, expect, it } from "vitest";
+import { checkConfigDefaults } from "../scripts/lib/check-manifest.mjs";
 import deriveAllowlist from "../scripts/lib/vsix-allowlist.mjs";
 
 /**
  * 门禁自身的测试。
  *
  * 门禁漏判不会让构建失败, 只会静默放过它本该拦住的东西, 因此推导规则必须有断言:
- * 允许清单必须涵盖清单里声明的每一类产物。
+ * 允许清单必须涵盖清单里声明的每一类产物; 配置默认值自洽检查必须能拦住缺 default,
+ * object 缺 additionalProperties, nested 与父 default 漂移这类设置界面与实现的静默不一致。
  *
  * 用 `.mjs` 而不是 `.ts`: `tsconfig.json` 没开 `allowJs`, 从 `.ts` 里 import 这些构建脚本
  * 会让 `tsc --noEmit` 报缺声明文件; 反过来 tsc 不收录 `.mjs`, 所以两边都干净。
@@ -144,5 +150,99 @@ describe("deriveAllowlist", () => {
 		});
 		expect(allowed.has("l10n/bundle.l10n.zh-cn.json")).toBe(true);
 		expect(allowed.has("l10n/yaml-server/bundle.l10n.json")).toBe(true);
+	});
+});
+
+/**
+ * 配置默认值自洽检查的样本。写进临时目录而不是读本仓库自己的 package.json:
+ * 应失败样例必须能独立构造, 不能靠改本仓库清单来测。
+ */
+const tempRoot = properties => {
+	const root = mkdtempSync(join(tmpdir(), "editor-lang-toolkit-gates-"));
+	writeFileSync(
+		join(root, "package.json"),
+		JSON.stringify({ contributes: { configuration: { properties } } })
+	);
+	return root;
+};
+
+describe("checkConfigDefaults", () => {
+	it("完整对齐的 object 配置通过", () => {
+		const root = tempRoot({
+			"ext.object": {
+				type: "object",
+				default: { alpha: true, beta: "x" },
+				additionalProperties: false,
+				properties: {
+					alpha: { type: "boolean", default: true },
+					beta: { type: "string", default: "x" },
+				},
+				defaultSnippets: [{ body: { alpha: true, beta: "x" } }, { body: { alpha: false } }],
+			},
+			"ext.simple": { type: "boolean", default: false },
+			// 兼容用的覆盖容器: default: {} 且无 nested properties, 是它的实际默认值。
+			"ext.legacy": { type: "object", default: {}, additionalProperties: true },
+		});
+		expect(checkConfigDefaults(root)).toEqual([]);
+	});
+
+	it("检出缺 default, 缺 additionalProperties 与父子 default 不一致", () => {
+		const root = tempRoot({
+			"ext.missing": { type: "boolean" },
+			"ext.object": {
+				type: "object",
+				default: { alpha: true, extra: 1 },
+				properties: {
+					alpha: { type: "boolean", default: false },
+					beta: { type: "string" },
+				},
+			},
+		});
+		const problems = checkConfigDefaults(root);
+		expect(problems.some(p => p.includes("ext.missing 缺少 default"))).toBe(true);
+		expect(problems.some(p => p.includes("additionalProperties"))).toBe(true);
+		expect(problems.some(p => p.includes("nested default 与父 default 不一致: alpha"))).toBe(
+			true
+		);
+		expect(problems.some(p => p.includes("缺少 nested 键: beta"))).toBe(true);
+		expect(problems.some(p => p.includes("含有 schema 未声明的键: extra"))).toBe(true);
+		expect(problems.some(p => p.includes("ext.object.properties.beta 缺少 default"))).toBe(
+			true
+		);
+	});
+
+	it("全量 defaultSnippets 与 default 不一致时报错, 部分覆盖的 snippet 不报", () => {
+		const root = tempRoot({
+			"ext.object": {
+				type: "object",
+				default: { alpha: true, beta: "x" },
+				additionalProperties: true,
+				properties: {
+					alpha: { type: "boolean", default: true },
+					beta: { type: "string", default: "x" },
+				},
+				defaultSnippets: [{ body: { alpha: true, beta: "y" } }],
+			},
+		});
+		expect(checkConfigDefaults(root)).toEqual([
+			"ext.object 的全量 defaultSnippets[0] 与 default 不一致",
+		]);
+	});
+
+	it("多份 configuration (数组形态) 都被检查", () => {
+		// 数组形态不经过 tempRoot: 它会把入参包进 properties, 只适配单份 configuration。
+		const root = mkdtempSync(join(tmpdir(), "editor-lang-toolkit-gates-"));
+		writeFileSync(
+			join(root, "package.json"),
+			JSON.stringify({
+				contributes: {
+					configuration: [
+						{ properties: { "ext.a": { type: "boolean", default: true } } },
+						{ properties: { "ext.b": { type: "string" } } },
+					],
+				},
+			})
+		);
+		expect(checkConfigDefaults(root)).toEqual(["ext.b 缺少 default"]);
 	});
 });

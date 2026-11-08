@@ -49,7 +49,8 @@ export async function updateTomlGrammar(
 	const output = getOutput();
 	const config = vscode.workspace.getConfiguration("langToolkit");
 
-	if (!options.force && !config.get<boolean>("toml.grammarUpdate.enabled", true)) {
+	// 默认值只在清单的 contributes.configuration 里声明, 这里不写第二份字面量。
+	if (!options.force && !config.get<boolean>("toml.grammarUpdate.enabled")) {
 		return { kind: "disabled" };
 	}
 

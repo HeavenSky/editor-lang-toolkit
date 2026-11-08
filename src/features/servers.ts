@@ -175,7 +175,8 @@ async function startServersNow(context: vscode.ExtensionContext): Promise<void> 
 
 	const pending: Promise<void>[] = [];
 	for (const [id, factory] of Object.entries(FACTORIES)) {
-		if (!config.get<boolean>(factory.setting, true) || clients.has(id)) continue;
+		// 默认值只在清单的 contributes.configuration 里声明, 这里不写第二份字面量。
+		if (!config.get<boolean>(factory.setting) || clients.has(id)) continue;
 		const { client, watcher } = factory.create(context);
 		clients.set(id, client);
 		watchers.set(id, watcher);
