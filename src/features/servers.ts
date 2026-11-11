@@ -1,6 +1,18 @@
+import type { ChildProcess } from "node:child_process";
+
 import * as vscode from "vscode";
-import { LanguageClient, TransportKind } from "vscode-languageclient/node";
-import type { LanguageClientOptions, ServerOptions } from "vscode-languageclient/node";
+import {
+	CloseAction,
+	ErrorAction,
+	LanguageClient,
+	State,
+	TransportKind,
+} from "vscode-languageclient/node";
+import type {
+	ErrorHandler,
+	LanguageClientOptions,
+	ServerOptions,
+} from "vscode-languageclient/node";
 
 import { rewriteTaploSource } from "../shared/diagnosticSource";
 import { getOutput } from "../shared/output";
@@ -110,14 +122,84 @@ function createYamlClient(context: vscode.ExtensionContext): {
  * `crates/taplo-lsp/src/config.rs` 的 `default_configuration_section`), 沿用它等于让本扩展
  * 去读另一个扩展的设置节。改成自己的节后两者可以共存, 互不干扰。
  */
+/**
+ * 崩溃后的重启退避: 首次等 5 秒, 每次崩溃距上次启动不足 1 分钟就翻倍, 封顶 2 分钟。
+ * 稳定运行满 1 分钟后再崩溃, 重新从 5 秒算起。
+ */
+const CRASH_RESTART_BASE_MS = 5000;
+const CRASH_RESTART_MAX_MS = 120_000;
+const CRASH_STABLE_MS = 60_000;
+const crashStreaks = new Map<string, number>();
+
+/**
+ * 服务器崩溃时先销毁旧进程, 等一段时间后换一个全新的客户端重启, 不受内置"3 分钟内崩溃 5 次
+ * 就不再重启"的限制。
+ *
+ * 用于 TOML: taplo 0.8.0 的补全在不完整的文档上会 panic (例: 输入 `[` 后自动闭合出的 `[]`),
+ * wasm panic 后实例不可恢复, 只能换进程; 编辑中崩溃很常见, 内置上限很快就会耗尽。
+ * 换新客户端而不是让旧客户端自行重启, 是因为旧客户端重启时会把崩溃前积压的变更投递失败
+ * (`Delivering pending changes failed`)。崩溃发生在启动阶段时由 `startServersNow` 记录失败,
+ * 不再重启, 避免确定性的启动崩溃无限循环。
+ */
+function crashRestartHandler(
+	context: vscode.ExtensionContext,
+	id: string,
+	getClient: () => LanguageClient,
+	getProcess: () => ChildProcess | undefined,
+	startedAt: number
+): ErrorHandler {
+	return {
+		error: () => ({ action: ErrorAction.Continue }),
+		closed: () => {
+			const crashed = getClient();
+			const serverProcess = getProcess();
+			if (
+				serverProcess &&
+				serverProcess.exitCode === null &&
+				serverProcess.signalCode === null
+			) {
+				serverProcess.kill("SIGKILL");
+			}
+			const streak =
+				Date.now() - startedAt < CRASH_STABLE_MS ? (crashStreaks.get(id) ?? 0) + 1 : 1;
+			crashStreaks.set(id, streak);
+			const delay = Math.min(CRASH_RESTART_BASE_MS * 2 ** (streak - 1), CRASH_RESTART_MAX_MS);
+			setTimeout(() => {
+				void enqueueLifecycle(async () => {
+					// 等待期间已被手动重启, 停止或禁用时不再插手。
+					if (clients.get(id) !== crashed) return;
+					clients.delete(id);
+					watchers.get(id)?.dispose();
+					watchers.delete(id);
+					await startServersNow(context);
+				});
+			}, delay);
+			return {
+				action: CloseAction.DoNotRestart,
+				handled: true,
+				message: `The ${id.toUpperCase()} language server exited unexpectedly; restarting in ${delay / 1000}s.`,
+			};
+		},
+	};
+}
+
 function createTomlClient(context: vscode.ExtensionContext): {
 	client: LanguageClient;
 	watcher: vscode.FileSystemWatcher;
 } {
 	const watcher = vscode.workspace.createFileSystemWatcher("**/{*.toml,.taplo.toml}");
+	// 客户端在连接断开时只丢弃进程句柄而不杀进程, 所以运行期间自己留一份。
+	let serverProcess: ChildProcess | undefined;
 	const clientOptions: LanguageClientOptions = {
 		documentSelector: [{ language: "toml" }],
 		synchronize: { fileEvents: watcher },
+		errorHandler: crashRestartHandler(
+			context,
+			"toml",
+			() => client,
+			() => serverProcess,
+			Date.now()
+		),
 		initializationOptions: {
 			configurationSection: "langToolkit.taplo",
 			cachePath: context.globalStorageUri.fsPath,
@@ -135,6 +217,9 @@ function createTomlClient(context: vscode.ExtensionContext): {
 		forkedServerOptions(context, TOML_SERVER_FLAG, 6020),
 		clientOptions
 	);
+	client.onDidChangeState(event => {
+		if (event.newState === State.Running) serverProcess = client.serverProcess;
+	});
 	return { client, watcher };
 }
 

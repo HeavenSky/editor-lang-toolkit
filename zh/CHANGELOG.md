@@ -9,6 +9,12 @@
 - 设置：`langToolkit.taplo` 的说明现在写明留空即不做任何覆盖，此时 TOML 语言服务器使用自身默认值。行为无变化。
 - 打包：`npm run check` 现在会核对每个配置项都声明了默认值，且 object、嵌套与全量 snippet 的默认值和清单保持一致。
 
+**修复**：
+
+- TOML：SchemaStore 目录里的 schema 重新按文件名匹配，例如 `pyproject.toml`。此前内置的 Taplo 拒收当前的目录，日志报 `data did not match any variant of untagged enum SchemaCatalog`。
+- TOML：schema 用 `allOf` 包裹引用的文件（例如 Codex 的 `config.toml` schema）里请求补全，不再让语言服务器以 `Maximum call stack size exceeded` 崩溃。
+- TOML：语言服务器崩溃后改为 5 秒后重启，不再在三分钟内崩溃五次后放弃；连续崩溃时等待时间翻倍，最长 2 分钟。Taplo 在 `[]` 这类不完整表头里请求补全时仍会崩溃（见[故障排查](https://github.com/HeavenSky/editor-lang-toolkit/blob/HEAD/zh/docs/troubleshooting.md#yaml-与-toml)）。
+
 ## v0.0.5 2026-11-05 YAML 格式化与 ANSI 预览修复
 
 **修复**：

@@ -9,6 +9,12 @@
 - Settings: the `langToolkit.taplo` description now states that leaving it empty applies no overrides — the TOML language server then uses its own defaults. No behaviour change.
 - Packaging: `npm run check` now verifies that every configuration key declares a default, and that object, nested and snippet defaults stay consistent with the manifest.
 
+**Fixed**:
+
+- TOML: schemas from the SchemaStore catalog are matched by file name again, for example for `pyproject.toml`. The bundled Taplo rejected the current catalog and logged `data did not match any variant of untagged enum SchemaCatalog`.
+- TOML: completions in files whose schema wraps a reference in `allOf`, such as the Codex `config.toml` schema, no longer crash the language server with `Maximum call stack size exceeded`.
+- TOML: after a crash the language server now restarts after 5 seconds instead of giving up after five crashes in three minutes; repeated crashes double the wait, up to 2 minutes. Taplo still crashes on completions in some incomplete headers such as `[]` ([troubleshooting](https://github.com/HeavenSky/editor-lang-toolkit/blob/HEAD/docs/troubleshooting.md#yaml-and-toml)).
+
 ## v0.0.5 2026-11-05 YAML formatting and ANSI preview fixes
 
 **Fixed**:

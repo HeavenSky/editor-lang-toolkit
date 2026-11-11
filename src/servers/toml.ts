@@ -14,6 +14,7 @@ import { accessSync, globSync } from "node:fs";
 import { isAbsolute, join } from "node:path";
 
 import type { TaploRpcMessage } from "../../vendor/taplo-lsp.cjs";
+import { patchTaploJson } from "../shared/taploCompat";
 
 /** taplo 会沿目录树向上找这两个文件名; 顺序即优先级。 */
 const CONFIG_FILE_NAMES = [".taplo.toml", "taplo.toml"];
@@ -42,7 +43,32 @@ function urlToFilePath(url: string): string {
 	return process.platform === "win32" && path.startsWith("/") ? path.slice(1) : path;
 }
 
+/** 网络响应进入 wasm 前按 `patchTaploJson` 改写, 原因见 `shared/taploCompat`。 */
+function withTaploCompat(base: typeof fetch): typeof fetch {
+	return async (input, init) => {
+		const response = await base(input, init);
+		if (!response.ok) return response;
+		const body = patchTaploJson(await response.clone().text());
+		if (body === undefined) return response;
+		const headers = new Headers(response.headers);
+		headers.delete("content-length");
+		headers.delete("content-encoding");
+		const patched = new Response(body, {
+			status: response.status,
+			statusText: response.statusText,
+			headers,
+		});
+		// wasm 侧会读 `response.url` 并按 URL 解析, 新建的 Response 该字段为空。
+		Object.defineProperty(patched, "url", { value: response.url });
+		return patched;
+	};
+}
+
 export async function run(): Promise<void> {
+	// Node 自带全局 fetch 时 taplo 直接用它而不看 `environment.fetch`, 所以两处都要换。
+	const compatFetch = withTaploCompat(globalThis.fetch);
+	globalThis.fetch = compatFetch;
+
 	const { TaploLsp } = await import("../../vendor/taplo-lsp.cjs");
 
 	const environment = {
@@ -53,7 +79,12 @@ export async function run(): Promise<void> {
 		glob: (pattern: string) => globSync(pattern),
 		isAbsolute,
 		now: () => new Date(),
-		readFile: (path: string) => readFile(path),
+		// schema 缓存与本地 schema 文件也要改写, 否则旧缓存照样触发补全栈溢出。
+		readFile: async (path: string) => {
+			const content = await readFile(path);
+			const patched = patchTaploJson(content.toString("utf8"));
+			return patched === undefined ? content : Buffer.from(patched, "utf8");
+		},
 		writeFile: (path: string, content: Uint8Array) => writeFile(path, content),
 		stderr: process.stderr,
 		stdErrAtty: () => process.stderr.isTTY === true,
@@ -61,7 +92,7 @@ export async function run(): Promise<void> {
 		stdout: process.stdout,
 		urlToFilePath,
 		fetch: {
-			fetch: globalThis.fetch,
+			fetch: compatFetch,
 			Headers: globalThis.Headers,
 			Request: globalThis.Request,
 			Response: globalThis.Response,

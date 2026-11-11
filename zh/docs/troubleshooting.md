@@ -24,6 +24,10 @@
 原因：文件没有关联 schema，或服务器被关掉了。
 解决：按[为 YAML 与 TOML 指定 schema](schemas.md)关联 schema，检查 `langToolkit.yaml.enabled` 与 `langToolkit.toml.enabled`，再运行 **Lang Toolkit: 重启语言服务器**（英文界面：Restart Language Servers）。
 
+**输出面板出现 `The TOML language server exited unexpectedly; restarting in 5s.`**
+原因：内置的 Taplo 在部分不完整的 TOML 里计算补全时会崩溃，例如输入过程中出现的空表头 `[]` 或 `[tool.]`。崩溃后的服务器无法就地恢复。
+解决：无需操作，服务器会自动重启，重启完成后 TOML 功能恢复。如果启动后一分钟内再次崩溃，等待时间每次翻倍，最长 2 分钟。把表头写完整（例如 `[tool.uv]`）即可不再崩溃，也可以运行 **Lang Toolkit: 重启语言服务器**（英文界面：Restart Language Servers）立即重启。
+
 **`TOML 语法已更新, 重载窗口后生效.`**（英文界面：`TOML grammar updated. Reload the window to apply it.`）
 原因：VS Code 只在窗口加载时读取扩展的语法文件。
 解决：点 **重载窗口**，或继续工作，下次重载后生效。

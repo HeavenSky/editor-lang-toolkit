@@ -24,6 +24,10 @@ Fix: set `cwd` in the launch configuration to the project directory.
 Cause: the file has no schema, or the server is turned off.
 Fix: attach a schema as shown in [Validate YAML and TOML against a schema](schemas.md), check `langToolkit.yaml.enabled` and `langToolkit.toml.enabled`, then run **Lang Toolkit: Restart Language Servers**.
 
+**`The TOML language server exited unexpectedly; restarting in 5s.`**
+Cause: the bundled Taplo crashes when it computes completions in some incomplete TOML, such as an empty table header `[]` or `[tool.]` while you type. A crashed server cannot recover in place.
+Fix: nothing to do; the server restarts on its own and TOML features return once it is back. If it crashes again within a minute of starting, the wait doubles each time, up to 2 minutes. Finish the header (for example `[tool.uv]`) to stop the crashes, or run **Lang Toolkit: Restart Language Servers** to restart now.
+
 **`TOML grammar updated. Reload the window to apply it.`**
 Cause: VS Code reads extension grammars only when the window loads.
 Fix: click **Reload Window**, or keep working; the new grammar applies after the next reload.
