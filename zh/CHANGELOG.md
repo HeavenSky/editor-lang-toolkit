@@ -13,7 +13,7 @@
 
 - TOML：SchemaStore 目录里的 schema 重新按文件名匹配，例如 `pyproject.toml`。此前内置的 Taplo 拒收当前的目录，日志报 `data did not match any variant of untagged enum SchemaCatalog`。
 - TOML：schema 用 `allOf` 包裹引用的文件（例如 Codex 的 `config.toml` schema）里请求补全，不再让语言服务器以 `Maximum call stack size exceeded` 崩溃。
-- TOML：语言服务器崩溃后改为 5 秒后重启，不再在三分钟内崩溃五次后放弃；连续崩溃时等待时间翻倍，最长 2 分钟。Taplo 在 `[]` 这类不完整表头里请求补全时仍会崩溃（见[故障排查](https://github.com/HeavenSky/editor-lang-toolkit/blob/HEAD/zh/docs/troubleshooting.md#yaml-与-toml)）。
+- TOML：语言服务器崩溃后改为 5 秒后重启，不再在三分钟内崩溃五次后放弃；连续崩溃时等待时间翻倍，最长 2 分钟。Taplo 在 `[]` 这类不完整表头里请求补全时仍会崩溃（见[故障排查](./docs/troubleshooting.md#yaml-与-toml)）。
 
 ## v0.0.5 2026-11-05 YAML 格式化与 ANSI 预览修复
 
@@ -28,13 +28,13 @@
 
 **变更**：
 
-- 文档：README 改为简短的概览；schema、ANSI、Python 调试、网络访问和故障排查各有一页，放在[使用指南](https://github.com/HeavenSky/editor-lang-toolkit/blob/HEAD/zh/docs/README.md)下，中文页面移到 `zh/` 目录。
+- 文档：README 改为简短的概览；schema、ANSI、Python 调试、网络访问和故障排查各有一页，放在[使用指南](./docs/README.md)下，中文页面移到 `zh/` 目录。
 
 ## v0.0.3 2026-10-13 uv 项目的 Python 调试
 
 **新增**：
 
-- 支持调试 uv 项目中的 Python，不需要微软的 Python 扩展：在 `.py` 文件中按 F5，或使用 _Python (uv)_ 的 `launch.json` 模板（[指南](https://github.com/HeavenSky/editor-lang-toolkit/blob/HEAD/zh/docs/python-debugging.md#调试当前文件)）。
+- 支持调试 uv 项目中的 Python，不需要微软的 Python 扩展：在 `.py` 文件中按 F5，或使用 _Python (uv)_ 的 `launch.json` 模板（[指南](./docs/python-debugging.md#调试当前文件)）。
 
 **变更**：
 

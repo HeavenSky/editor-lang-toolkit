@@ -13,7 +13,7 @@
 
 - TOML: schemas from the SchemaStore catalog are matched by file name again, for example for `pyproject.toml`. The bundled Taplo rejected the current catalog and logged `data did not match any variant of untagged enum SchemaCatalog`.
 - TOML: completions in files whose schema wraps a reference in `allOf`, such as the Codex `config.toml` schema, no longer crash the language server with `Maximum call stack size exceeded`.
-- TOML: after a crash the language server now restarts after 5 seconds instead of giving up after five crashes in three minutes; repeated crashes double the wait, up to 2 minutes. Taplo still crashes on completions in some incomplete headers such as `[]` ([troubleshooting](https://github.com/HeavenSky/editor-lang-toolkit/blob/HEAD/docs/troubleshooting.md#yaml-and-toml)).
+- TOML: after a crash the language server now restarts after 5 seconds instead of giving up after five crashes in three minutes; repeated crashes double the wait, up to 2 minutes. Taplo still crashes on completions in some incomplete headers such as `[]` ([troubleshooting](./docs/troubleshooting.md#yaml-and-toml)).
 
 ## v0.0.5 2026-11-05 YAML formatting and ANSI preview fixes
 
@@ -28,13 +28,13 @@
 
 **Changed**:
 
-- Docs: the README is now a short overview; schemas, ANSI, Python debugging, network access and troubleshooting each have their own page under [docs](https://github.com/HeavenSky/editor-lang-toolkit/blob/HEAD/docs/README.md), and the Chinese pages now live under `zh/`.
+- Docs: the README is now a short overview; schemas, ANSI, Python debugging, network access and troubleshooting each have their own page under [docs](./docs/README.md), and the Chinese pages now live under `zh/`.
 
 ## v0.0.3 2026-10-13 Python debugging for uv projects
 
 **Added**:
 
-- Python debugging for uv projects, without the Microsoft Python extensions: press F5 in a `.py` file, or use the _Python (uv)_ `launch.json` templates ([guide](https://github.com/HeavenSky/editor-lang-toolkit/blob/HEAD/docs/python-debugging.md#debug-the-current-file)).
+- Python debugging for uv projects, without the Microsoft Python extensions: press F5 in a `.py` file, or use the _Python (uv)_ `launch.json` templates ([guide](./docs/python-debugging.md#debug-the-current-file)).
 
 **Changed**:
 
