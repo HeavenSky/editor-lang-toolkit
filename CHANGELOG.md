@@ -2,7 +2,7 @@
 
 **English** · [简体中文](./zh/CHANGELOG.md)
 
-## v0.0.6 2026-11-08 Settings clarity and release checks
+## v0.0.6 2026-11-11 TOML crash fixes and settings clarity
 
 **Changed**:
 
