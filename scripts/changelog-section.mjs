@@ -11,10 +11,16 @@
  *
  * 匹配时对 `v` 前缀, 方括号与 `-` 分隔符都保持宽容 (`## 0.0.1`、`## [0.0.1] - 2026-08-04`
  * 同样可被识别), 这样历史文件不会因为格式统一而突然抽不出正文; 新写的小节请用上面那一种。
+ *
+ * 正文里指向本仓库的相对链接改写成绝对地址 (见 `lib/changelog-links.mjs`)。仓库取
+ * `GITHUB_SERVER_URL`/`GITHUB_REPOSITORY`, 不在 Actions 里时取 `package.json` 的 `repository`;
+ * 版本取 `GITHUB_SHA`, 没有时取 `v<版本>` 标签。
  */
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
+
+import { absolutizeLinks, repoUrlFromPackage } from "./lib/changelog-links.mjs";
 
 const ROOT = join(fileURLToPath(new URL(".", import.meta.url)), "..");
 
@@ -53,4 +59,21 @@ if (body === "") {
 	process.exit(1);
 }
 
-process.stdout.write(`${body}\n`);
+const { GITHUB_SERVER_URL, GITHUB_REPOSITORY, GITHUB_SHA } = process.env;
+const repoUrl =
+	GITHUB_SERVER_URL && GITHUB_REPOSITORY
+		? `${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}`
+		: repoUrlFromPackage(JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8")));
+if (!repoUrl) {
+	console.error(
+		"无法确定仓库地址: 未设置 GITHUB_REPOSITORY, package.json 的 repository 也不是 GitHub"
+	);
+	process.exit(1);
+}
+
+const notes = absolutizeLinks(body, {
+	repoUrl,
+	ref: GITHUB_SHA || `v${version}`,
+	sourcePath: "CHANGELOG.md",
+});
+process.stdout.write(`${notes}\n`);
